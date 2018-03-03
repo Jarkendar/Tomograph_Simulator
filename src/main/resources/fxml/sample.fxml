@@ -38,17 +38,17 @@
             <Image url="@../images/defaultBackGround.png"/>
         </ImageView>
         <Button fx:id="chooseFileButton" layoutX="614.0" layoutY="14.0" mnemonicParsing="false" prefHeight="26.0"
-                prefWidth="278.0" text="Choose file"/>
+                prefWidth="278.0" text="Choose file" onAction="#clickChooseFile"/>
         <Label layoutX="614.0" layoutY="54.0" text="Detectors number: "/>
-        <TextField fx:id="detectorNumberTextField" layoutX="800.0" layoutY="54.0" prefHeight="26.0" prefWidth="92.0"/>
+        <TextField fx:id="detectorNumberTextField" layoutX="800.0" layoutY="54.0" prefHeight="26.0" prefWidth="92.0" text="1"/>
         <Label layoutX="614.0" layoutY="94.0" text="Degrees range: "/>
-        <TextField fx:id="degreesRangeTextField" layoutX="800.0" layoutY="94.0" prefHeight="26.0" prefWidth="92.0"/>
+        <TextField fx:id="degreesRangeTextField" layoutX="800.0" layoutY="94.0" prefHeight="26.0" prefWidth="92.0" text="1"/>
         <Label layoutX="614.0" layoutY="134.0" text="Measures number: "/>
-        <TextField fx:id="measureNumberTextField" layoutX="800.0" layoutY="134.0" prefHeight="26.0" prefWidth="92.0"/>
+        <TextField fx:id="measureNumberTextField" layoutX="800.0" layoutY="134.0" prefHeight="26.0" prefWidth="92.0" text="1"/>
         <CheckBox fx:id="filteringCheckBox" layoutX="614.0" layoutY="174.0" prefWidth="286.0" prefHeight="26.0"
                   mnemonicParsing="false" text="Filtering"/>
         <Button fx:id="transformButton" layoutX="736.0" layoutY="436.0" prefHeight="150.0" prefWidth="150.0"
-                mnemonicParsing="false" text="START"/>
+                mnemonicParsing="false" text="START" disable="true"/>
         <Slider fx:id="stepSlider" layoutX="614.0" layoutY="314.0" max="360" orientation="VERTICAL" prefHeight="278.0"
                 showTickLabels="true" showTickMarks="true"/>
     </AnchorPane>
