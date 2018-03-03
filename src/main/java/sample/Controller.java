@@ -1,6 +1,7 @@
 package sample;
 
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
@@ -15,5 +16,6 @@ public class Controller {
     public TextField degreesRangeTextField;
     public TextField measureNumberTextField;
     public Slider stepSlider;
-
+    public CheckBox filteringCheckBox;
+    public Button transformButton;
 }
