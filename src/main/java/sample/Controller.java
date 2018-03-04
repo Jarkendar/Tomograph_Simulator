@@ -1,6 +1,5 @@
 package sample;
 
-import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -11,10 +10,8 @@ import javafx.scene.image.ImageView;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 
 public class Controller {
     public ImageView inputImage;
@@ -31,7 +28,8 @@ public class Controller {
 
     private File file;
     private String fileExtension;
-    private Image originalImage;
+    private Image originalImageInGrayScale;
+    private ImageManager imageManager;
 
     public void clickChooseFile(ActionEvent actionEvent) {
         actionEvent.getSource();
@@ -39,44 +37,32 @@ public class Controller {
 
         if (file != null) {
             fileExtension = getFileExtension(file);
-            switch (fileExtension){
-                case "DICOM":{
+            switch (fileExtension) {
+                case "DICOM": {
                     //todo do something
                     break;
                 }
-                case "png":{
+                case "png": {
                     readImage(file);
                 }
-                case "jpg":{
+                case "jpg": {
                     readImage(file);
                 }
             }
             transformButton.setDisable(false);
-        }else {
+        } else {
             transformButton.setDisable(true);
         }
     }
 
-    private void readImage(File file){
+    private void readImage(File file) {
         try {
-            BufferedImage img = ImageIO.read(file);
-            int width = img.getWidth();
-            int height = img.getHeight();
-            int[][] imgArr = new int[width][height];
-            Raster raster = img.getData();
-            for (int i = 0; i < width; i++) {
-                for (int j = 0; j < height; j++) {
-                    imgArr[i][j] = raster.getSample(i, j, 0);
-                }
-            }
-            inputImage.setImage(castBufferedImageToImage(img));
-        }catch (IOException e){
+            BufferedImage bufferedImage = ImageIO.read(file);
+            imageManager = new ImageManager(bufferedImage);
+            inputImage.setImage(imageManager.getOriginalInGrayscale());
+        } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private Image castBufferedImageToImage(BufferedImage bufferedImage){
-        return SwingFXUtils.toFXImage(bufferedImage, null);
     }
 
     private String getFileExtension(File file) {
