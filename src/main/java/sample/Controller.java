@@ -44,6 +44,8 @@ public class Controller {
                 }
                 case "png": {
                     readImage(file);
+                    Thread thread = new Thread(new SinogramCreator(imageManager.getBitmap(),5, 360, 180));
+                    thread.start();
                     break;
                 }
                 case "jpg": {
