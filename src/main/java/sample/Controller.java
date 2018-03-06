@@ -44,9 +44,11 @@ public class Controller {
                 }
                 case "png": {
                     readImage(file);
+                    break;
                 }
                 case "jpg": {
                     readImage(file);
+                    break;
                 }
             }
             transformButton.setDisable(false);

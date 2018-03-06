@@ -7,13 +7,20 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class ImageManager {
-    int[][][] bitmap;//[row][column][alpha]
+    private int[][][] bitmap;//[row][column][alpha]
 
     public ImageManager(BufferedImage bufferedImage) {
-        bitmap = new int[bufferedImage.getWidth()][bufferedImage.getHeight()][2];
-        for (int i = 0; i < bufferedImage.getWidth(); i++) {
-            for (int j = 0; j < bufferedImage.getHeight(); j++) {
-                Color color = new Color(bufferedImage.getRGB(i, j));
+        int width = bufferedImage.getWidth();
+        int height = bufferedImage.getHeight();
+        int matrixSize = height > width ? width : height;
+
+        bitmap = new int[matrixSize][matrixSize][2];
+
+        int startIForImage = (bufferedImage.getWidth()-matrixSize)/2;
+        int startJForImage = (bufferedImage.getHeight()-matrixSize)/2;
+        for (int i = 0; i < matrixSize; i++) {
+            for (int j = 0; j < matrixSize; j++) {
+                Color color = new Color(bufferedImage.getRGB(startIForImage+i, startJForImage+j));
                 int gray = (color.getBlue() + color.getGreen() + color.getRed()) / 3;
                 bitmap[i][j][0] = gray;
                 bitmap[i][j][1] = color.getAlpha();
