@@ -57,4 +57,25 @@ public class ImageManager {
         }
         return castBufferedImageToImage(image);
     }
+
+    public Image createImageFromSinogram(int[][] sinogram){
+        int width = sinogram.length;
+        int height = sinogram[0].length;
+        int imageSize = width < height ? height : width;
+        System.out.println(width + " " + height + " " + imageSize);
+        BufferedImage image = new BufferedImage(imageSize, imageSize, BufferedImage.TYPE_INT_ARGB);
+        for (int i = 0; i < imageSize; i++){
+            for (int j = 0; j < imageSize; j++){
+                Color color = Color.BLACK;
+                int xSinogram = (imageSize-width)/2;
+                int ySinogram = (imageSize-height)/2;
+                if (i >= xSinogram && j >= ySinogram && (i-xSinogram)<sinogram.length && (j-ySinogram)<sinogram[0].length ){
+                    System.out.println("x = "+(i-xSinogram)+" y = "+(j-ySinogram));
+                    color = new Color(sinogram[i-xSinogram][j-ySinogram],sinogram[i-xSinogram][j-ySinogram],sinogram[i-xSinogram][j-ySinogram],0);
+                }
+                image.setRGB(i,j,color.getRGB());
+            }
+        }
+        return castBufferedImageToImage(image);
+    }
 }

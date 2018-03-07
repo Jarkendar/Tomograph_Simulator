@@ -29,16 +29,6 @@ public class SinogramCreator extends Observable implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("0");
-        getEmitterAndDetectorsPositions(0);
-        System.out.println("90");
-        getEmitterAndDetectorsPositions(90);
-        System.out.println("180");
-        getEmitterAndDetectorsPositions(180);
-        System.out.println("270");
-        getEmitterAndDetectorsPositions(270);
-        SinogramRowCalc[] threads = new SinogramRowCalc[scansNumber];
-
         //todo
     }
 
@@ -86,5 +76,9 @@ public class SinogramCreator extends Observable implements Runnable {
     public synchronized void deleteObservers() {
         super.deleteObservers();
         observers.clear();
+    }
+
+    public int[][] getSinogramBitmap(){
+        return sinogramBitmap;
     }
 }

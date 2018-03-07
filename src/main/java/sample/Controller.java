@@ -12,8 +12,10 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Observable;
+import java.util.Observer;
 
-public class Controller {
+public class Controller implements Observer{
     public ImageView inputImage;
     public ImageView sinogramImage;
     public ImageView outputImage;
@@ -30,6 +32,7 @@ public class Controller {
     private String fileExtension;
     private Image originalImageInGrayScale;
     private ImageManager imageManager;
+    private SinogramCreator sinogramCreator;
 
     public void clickChooseFile(ActionEvent actionEvent) {
         actionEvent.getSource();
@@ -44,7 +47,8 @@ public class Controller {
                 }
                 case "png": {
                     readImage(file);
-                    Thread thread = new Thread(new SinogramCreator(imageManager.getBitmap(),5, 360, 180));
+                    sinogramCreator = new SinogramCreator(imageManager.getBitmap(),5, 360, 180);
+                    Thread thread = new Thread(sinogramCreator);
                     thread.start();
                     break;
                 }
@@ -64,6 +68,16 @@ public class Controller {
             BufferedImage bufferedImage = ImageIO.read(file);
             imageManager = new ImageManager(bufferedImage);
             inputImage.setImage(imageManager.getOriginalInGrayscale());
+
+            int[][] ints = new int[180][90];
+            for (int i =0 ; i< ints.length; i++){
+                for (int j = 0; j< ints[0].length; j++){
+                    ints[i][j] = 255;
+                }
+            }
+
+
+            setSinogramImage(imageManager.createImageFromSinogram(ints));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -78,4 +92,14 @@ public class Controller {
         }
     }
 
+    @Override
+    public void update(Observable observable, Object arg) {
+        if(observable instanceof SinogramCreator){
+            ((SinogramCreator)observable).getSinogramBitmap();
+        }
+    }
+
+    private void setSinogramImage(Image image){
+        sinogramImage.setImage(image);
+    }
 }
