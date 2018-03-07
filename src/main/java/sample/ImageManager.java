@@ -69,7 +69,7 @@ public class ImageManager {
                 int xSinogram = (imageSize-width)/2;
                 int ySinogram = (imageSize-height)/2;
                 if (i >= xSinogram && j >= ySinogram && (i-xSinogram)<sinogram.length && (j-ySinogram)<sinogram[0].length ){
-                    color = new Color(sinogram[i-xSinogram][j-ySinogram],sinogram[i-xSinogram][j-ySinogram],sinogram[i-xSinogram][j-ySinogram],0);
+                    color = new Color(sinogram[i-xSinogram][j-ySinogram],sinogram[i-xSinogram][j-ySinogram],sinogram[i-xSinogram][j-ySinogram],255);
                 }
                 image.setRGB(i,j,color.getRGB());
             }

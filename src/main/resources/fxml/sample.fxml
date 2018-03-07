@@ -48,7 +48,7 @@
         <CheckBox fx:id="filteringCheckBox" layoutX="614.0" layoutY="174.0" prefWidth="286.0" prefHeight="26.0"
                   mnemonicParsing="false" text="Filtering"/>
         <Button fx:id="transformButton" layoutX="736.0" layoutY="436.0" prefHeight="150.0" prefWidth="150.0"
-                mnemonicParsing="false" text="START" disable="true"/>
+                mnemonicParsing="false" text="START" disable="true" onAction="#clickStartButton"/>
         <Slider fx:id="stepSlider" layoutX="614.0" layoutY="314.0" max="360" orientation="VERTICAL" prefHeight="278.0"
                 showTickLabels="true" showTickMarks="true"/>
     </AnchorPane>

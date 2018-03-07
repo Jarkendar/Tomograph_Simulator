@@ -28,7 +28,7 @@ public class Controller implements Observer {
     public CheckBox filteringCheckBox;
     public Button transformButton;
 
-    private File file;
+    private File file = null;
     private String fileExtension;
     private Image originalImageInGrayScale;
     private ImageManager imageManager;
@@ -39,36 +39,36 @@ public class Controller implements Observer {
             if (canCastToInteger(newValue)) {
                 int number = Integer.parseInt(newValue);
                 if (number > 0) {
-                    transformButton.setDisable(false);
+                    transformButton.setDisable(!allInputDataIsCorrect());
                 } else {
-                    transformButton.setDisable(true);
+                    transformButton.setDisable(!allInputDataIsCorrect());
                 }
             } else {
-                transformButton.setDisable(true);
+                transformButton.setDisable(!allInputDataIsCorrect());
             }
         });
         degreesRangeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (canCastToInteger(newValue)) {
                 int number = Integer.parseInt(newValue);
                 if (number > 0 && number < 360) {
-                    transformButton.setDisable(false);
+                    transformButton.setDisable(!allInputDataIsCorrect());
                 } else {
-                    transformButton.setDisable(true);
+                    transformButton.setDisable(allInputDataIsCorrect());
                 }
             } else {
-                transformButton.setDisable(true);
+                transformButton.setDisable(!allInputDataIsCorrect());
             }
         });
         measureNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (canCastToInteger(newValue)) {
                 int number = Integer.parseInt(newValue);
                 if (number > 0) {
-                    transformButton.setDisable(false);
+                    transformButton.setDisable(!allInputDataIsCorrect());
                 } else {
-                    transformButton.setDisable(true);
+                    transformButton.setDisable(!allInputDataIsCorrect());
                 }
             } else {
-                transformButton.setDisable(true);
+                transformButton.setDisable(!allInputDataIsCorrect());
             }
         });
         transformButton.setDisable(!allInputDataIsCorrect());
@@ -99,9 +99,6 @@ public class Controller implements Observer {
                 }
                 case "png": {
                     readImage(file);
-                    sinogramCreator = new SinogramCreator(imageManager.getBitmap(), 5, 360, 180);
-                    Thread thread = new Thread(sinogramCreator);
-                    thread.start();
                     break;
                 }
                 case "jpg": {
@@ -120,16 +117,6 @@ public class Controller implements Observer {
             BufferedImage bufferedImage = ImageIO.read(file);
             imageManager = new ImageManager(bufferedImage);
             inputImage.setImage(imageManager.getOriginalInGrayscale());
-
-            int[][] ints = new int[180][90];
-            for (int i = 0; i < ints.length; i++) {
-                for (int j = 0; j < ints[0].length; j++) {
-                    ints[i][j] = 255;
-                }
-            }
-
-
-            setSinogramImage(imageManager.createImageFromSinogram(ints));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -147,11 +134,20 @@ public class Controller implements Observer {
     @Override
     public void update(Observable observable, Object arg) {
         if (observable instanceof SinogramCreator) {
-            ((SinogramCreator) observable).getSinogramBitmap();
+            setSinogramImage(imageManager.createImageFromSinogram(((SinogramCreator) observable).getSinogramBitmap()));
+            transformButton.setDisable(false);
         }
     }
 
     private void setSinogramImage(Image image) {
         sinogramImage.setImage(image);
+    }
+
+    public void clickStartButton(ActionEvent actionEvent) {
+        SinogramCreator sinogramCreator = new SinogramCreator(imageManager.getBitmap(),Integer.parseInt(detectorNumberTextField.getText()), Integer.parseInt(measureNumberTextField.getText()), Integer.parseInt(degreesRangeTextField.getText()));
+        sinogramCreator.addObserver(this);
+        Thread thread = new Thread(sinogramCreator);
+        thread.start();
+        transformButton.setDisable(true);
     }
 }
