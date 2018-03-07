@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
 
-public class Controller implements Observer{
+public class Controller implements Observer {
     public ImageView inputImage;
     public ImageView sinogramImage;
     public ImageView outputImage;
@@ -34,6 +34,58 @@ public class Controller implements Observer{
     private ImageManager imageManager;
     private SinogramCreator sinogramCreator;
 
+    public void initialize() {
+        detectorNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (canCastToInteger(newValue)) {
+                int number = Integer.parseInt(newValue);
+                if (number > 0) {
+                    transformButton.setDisable(false);
+                } else {
+                    transformButton.setDisable(true);
+                }
+            } else {
+                transformButton.setDisable(true);
+            }
+        });
+        degreesRangeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (canCastToInteger(newValue)) {
+                int number = Integer.parseInt(newValue);
+                if (number > 0 && number < 360) {
+                    transformButton.setDisable(false);
+                } else {
+                    transformButton.setDisable(true);
+                }
+            } else {
+                transformButton.setDisable(true);
+            }
+        });
+        measureNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (canCastToInteger(newValue)) {
+                int number = Integer.parseInt(newValue);
+                if (number > 0) {
+                    transformButton.setDisable(false);
+                } else {
+                    transformButton.setDisable(true);
+                }
+            } else {
+                transformButton.setDisable(true);
+            }
+        });
+        transformButton.setDisable(!allInputDataIsCorrect());
+    }
+
+    private boolean canCastToInteger(String text) {
+        return text.matches("[0-9]+");
+    }
+
+    private boolean allInputDataIsCorrect() {
+        if (file == null) return false;
+        if (!canCastToInteger(detectorNumberTextField.getText())) return false;
+        if (!canCastToInteger(degreesRangeTextField.getText())) return false;
+        if (!canCastToInteger(measureNumberTextField.getText())) return false;
+        return true;
+    }
+
     public void clickChooseFile(ActionEvent actionEvent) {
         actionEvent.getSource();
         file = Main.openFileChooser();
@@ -47,7 +99,7 @@ public class Controller implements Observer{
                 }
                 case "png": {
                     readImage(file);
-                    sinogramCreator = new SinogramCreator(imageManager.getBitmap(),5, 360, 180);
+                    sinogramCreator = new SinogramCreator(imageManager.getBitmap(), 5, 360, 180);
                     Thread thread = new Thread(sinogramCreator);
                     thread.start();
                     break;
@@ -57,9 +109,9 @@ public class Controller implements Observer{
                     break;
                 }
             }
-            transformButton.setDisable(false);
+            transformButton.setDisable(!allInputDataIsCorrect());
         } else {
-            transformButton.setDisable(true);
+            transformButton.setDisable(allInputDataIsCorrect());
         }
     }
 
@@ -70,8 +122,8 @@ public class Controller implements Observer{
             inputImage.setImage(imageManager.getOriginalInGrayscale());
 
             int[][] ints = new int[180][90];
-            for (int i =0 ; i< ints.length; i++){
-                for (int j = 0; j< ints[0].length; j++){
+            for (int i = 0; i < ints.length; i++) {
+                for (int j = 0; j < ints[0].length; j++) {
                     ints[i][j] = 255;
                 }
             }
@@ -94,12 +146,12 @@ public class Controller implements Observer{
 
     @Override
     public void update(Observable observable, Object arg) {
-        if(observable instanceof SinogramCreator){
-            ((SinogramCreator)observable).getSinogramBitmap();
+        if (observable instanceof SinogramCreator) {
+            ((SinogramCreator) observable).getSinogramBitmap();
         }
     }
 
-    private void setSinogramImage(Image image){
+    private void setSinogramImage(Image image) {
         sinogramImage.setImage(image);
     }
 }
