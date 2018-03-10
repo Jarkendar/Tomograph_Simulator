@@ -47,11 +47,11 @@ public class ImageManager {
         return bitmap;
     }
 
-    public Image createImageFromArray(int[][][] imageArray) {
+    public Image createImageFromArray(int[][] imageArray) {
         BufferedImage image = new BufferedImage(imageArray.length, imageArray[0].length, BufferedImage.TYPE_INT_ARGB);
         for (int i = 0; i < imageArray.length; i++) {
             for (int j = 0; j < imageArray[i].length; j++) {
-                Color color = new Color(imageArray[i][j][0], imageArray[i][j][0], imageArray[i][j][0], imageArray[i][j][1]);
+                Color color = new Color(imageArray[i][j], imageArray[i][j], imageArray[i][j], 255);
                 image.setRGB(i, j, color.getRGB());
             }
         }

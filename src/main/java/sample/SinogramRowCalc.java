@@ -10,20 +10,12 @@ public class SinogramRowCalc implements Runnable {
     private int myRowNumber;
     private double[][] linearFunctionParameters;
 
-    public SinogramRowCalc(int[][][] referenceToImage, int[][] referenceToSinogram, int[][] positions, int myRowNumber) {
+    public SinogramRowCalc(int[][][] referenceToImage, int[][] referenceToSinogram, int[][] positions, int myRowNumber, double[][] linearFunctionParameters) {
         this.referenceToImage = referenceToImage;
         this.referenceToSinogram = referenceToSinogram;
         this.positions = positions;
         this.myRowNumber = myRowNumber;
-        createLinearFunctions();
-    }
-
-    private void createLinearFunctions() {
-        linearFunctionParameters = new double[positions.length][2];//first position in matrix 0 0
-        for (int i = 1; i < positions.length; i++) {
-            linearFunctionParameters[i][0] = ((double) (positions[0][1] - positions[i][1])) / ((double) (positions[0][0] - positions[i][0]));
-            linearFunctionParameters[i][1] = positions[0][1] - linearFunctionParameters[i][0] * positions[0][0];
-        }
+        this.linearFunctionParameters = linearFunctionParameters;
     }
 
     @Override

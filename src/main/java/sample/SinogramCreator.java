@@ -1,7 +1,5 @@
 package sample;//package sample;
 
-import sample.SinogramRowCalc;
-
 import java.util.LinkedList;
 import java.util.Observable;
 import java.util.Observer;
@@ -10,15 +8,21 @@ import static java.lang.Math.*;
 
 public class SinogramCreator extends Observable implements Runnable {
 
-    private final static String END_COMMUNICATE = "Sinogram is end.";
+    public final static String SINOGRAM_IS_END = "Sinogram is end.";
+    public final static String REVERSE_IS_END = "Reverse is end.";
     private final static double HALF_FULL_ANGLE = 180.0;
+    private final static String STATUS_START = "start";
+    private final static String STATUS_SINOGRAM = "sinogram";
+    private final static String STATUS_REVERSE = "reverse";
 
     private int[][][] inputBitmap;
+    private int[][] outputImage;
     private int[][] sinogramBitmap;
     private int detectorNumber;
     private int scansNumber;
     private int angleRange;
     private LinkedList<Observer> observers = new LinkedList<>();
+    private String status = STATUS_START;
 
     public SinogramCreator(int[][][] inputBitmap, int detectorNumber, int scansNumber, int angleRange) {
         this.inputBitmap = inputBitmap;
@@ -26,13 +30,15 @@ public class SinogramCreator extends Observable implements Runnable {
         this.scansNumber = scansNumber;
         this.angleRange = angleRange;
         sinogramBitmap = new int[detectorNumber][scansNumber];
+        outputImage = new int[inputBitmap.length][inputBitmap[0].length];
     }
 
     @Override
     public void run() {
         Thread[] rowCounters = new Thread[scansNumber];
         for (int i = 0; i < scansNumber; i++) {
-            rowCounters[i] = new Thread(new SinogramRowCalc(inputBitmap, sinogramBitmap, getEmitterAndDetectorsPositions(i), i));
+            int[][] positions = getEmitterAndDetectorsPositions(i);
+            rowCounters[i] = new Thread(new SinogramRowCalc(inputBitmap, sinogramBitmap, positions, i, createLinearFunctions(positions)));
             rowCounters[i].start();
         }
         for (Thread rowCounter : rowCounters) {
@@ -42,7 +48,22 @@ public class SinogramCreator extends Observable implements Runnable {
                 e.printStackTrace();
             }
         }
+        status = STATUS_SINOGRAM;
         notifyObservers();
+        createImageFromSinogram();
+        status = STATUS_REVERSE;
+        notifyObservers();
+        status = STATUS_START;
+    }
+
+
+    private double[][] createLinearFunctions(int[][] positions) {
+        double[][] linearFunctionParameters = new double[positions.length][2];//first position in matrix 0 0
+        for (int i = 1; i < positions.length; i++) {
+            linearFunctionParameters[i][0] = ((double) (positions[0][1] - positions[i][1])) / ((double) (positions[0][0] - positions[i][0]));
+            linearFunctionParameters[i][1] = positions[0][1] - linearFunctionParameters[i][0] * positions[0][0];
+        }
+        return linearFunctionParameters;
     }
 
     private int[][] getEmitterAndDetectorsPositions(int rowScanNumber) {
@@ -84,7 +105,16 @@ public class SinogramCreator extends Observable implements Runnable {
     public void notifyObservers() {
         super.notifyObservers();
         for (Observer observer : observers) {
-            observer.update(this, END_COMMUNICATE);
+            switch (status) {
+                case STATUS_SINOGRAM: {
+                    observer.update(this, SINOGRAM_IS_END);
+                    break;
+                }
+                case STATUS_REVERSE: {
+                    observer.update(this, REVERSE_IS_END);
+                    break;
+                }
+            }
         }
     }
 
@@ -96,5 +126,50 @@ public class SinogramCreator extends Observable implements Runnable {
 
     public int[][] getSinogramBitmap() {
         return sinogramBitmap;
+    }
+
+    public int[][] getOutputImage() {
+        return outputImage;
+    }
+
+    private void createImageFromSinogram() {
+        for (int i = 0; i < scansNumber; i++) {
+            int[][] positions = getEmitterAndDetectorsPositions(i);
+            double[][] linearFunctionParameters = createLinearFunctions(positions);
+            for (int j = 0; j < detectorNumber; j++) {
+                int color = sinogramBitmap[j][i];
+                fillBitmapColor(outputImage, color, positions, linearFunctionParameters, j + 1);
+            }
+        }
+        normalize(outputImage);
+    }
+
+    private void fillBitmapColor(int[][] bitmap, int color, int[][] positions, double[][] linearFunctionParameters, int currentDetector) {
+        int numberOfStep = Math.abs(positions[0][0] - positions[currentDetector][0]);
+        for (int i = 1; i < numberOfStep; i++) {
+            int currentX = positions[0][0] < positions[currentDetector][0] ? (positions[0][0] + i) : (positions[0][0] - i);
+            int currentY = (int) (linearFunctionParameters[currentDetector][0] * currentX + linearFunctionParameters[currentDetector][1]);
+            bitmap[currentX][currentY] += color;
+        }
+    }
+
+    private void normalize(int[][] bitmap) {
+        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+        for (int[] aBitmap : bitmap) {
+            for (int anABitmap : aBitmap) {
+                if (min > anABitmap) {
+                    min = anABitmap;
+                }
+                if (max < anABitmap) {
+                    max = anABitmap;
+                }
+            }
+        }
+        max = max - min;
+        for (int i = 0; i < bitmap.length; i++) {
+            for (int j = 0; j < bitmap[0].length; j++) {
+                bitmap[i][j] = (int) (((double) (bitmap[i][j] - min) / (double) max) * (255.0));
+            }
+        }
     }
 }

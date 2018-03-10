@@ -128,10 +128,27 @@ public class Controller implements Observer {
     @Override
     public void update(Observable observable, Object arg) {
         if (observable instanceof SinogramCreator) {
-            fileManager.saveSinogram(((SinogramCreator) observable).getSinogramBitmap(), file.getName(), getFileExtension(file));
-            setSinogramImage(imageManager.createImageFromSinogram(((SinogramCreator) observable).getSinogramBitmap()));
-            transformButton.setDisable(false);
+            String message = (String) arg;
+            switch (message) {
+                case SinogramCreator.SINOGRAM_IS_END: {
+                    fileManager.saveSinogram(((SinogramCreator) observable).getSinogramBitmap(), file.getName(), getFileExtension(file), Integer.parseInt(degreesRangeTextField.getText()));
+                    setSinogramImage(imageManager.createImageFromSinogram(((SinogramCreator) observable).getSinogramBitmap()));
+//                    transformButton.setDisable(false);
+                    break;
+                }
+                case SinogramCreator.REVERSE_IS_END: {
+                    fileManager.saveEndImage(((SinogramCreator) observable).getOutputImage(), file.getName(), getFileExtension(file));
+                    setOutputImage(imageManager.createImageFromArray(((SinogramCreator) observable).getOutputImage()));
+                    transformButton.setDisable(false);
+                    break;
+                }
+            }
         }
+    }
+
+    private void setOutputImage(Image image) {
+        outputImage.setImage(image);
+        reverseDisableFields();
     }
 
     private void setSinogramImage(Image image) {
@@ -143,6 +160,13 @@ public class Controller implements Observer {
         sinogramCreator.addObserver(this);
         Thread thread = new Thread(sinogramCreator);
         thread.start();
-        transformButton.setDisable(true);
+        reverseDisableFields();
+    }
+
+    private void reverseDisableFields() {
+        transformButton.setDisable(!transformButton.isDisable());
+        measureNumberTextField.setDisable(!measureNumberTextField.isDisable());
+        detectorNumberTextField.setDisable(!detectorNumberTextField.isDisable());
+        degreesRangeTextField.setDisable(!degreesRangeTextField.isDisable());
     }
 }

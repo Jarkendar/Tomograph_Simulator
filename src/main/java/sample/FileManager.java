@@ -39,7 +39,7 @@ public class FileManager {
         }
     }
 
-    public void saveSinogram(int[][] sinogram, String name, String extension) {
+    public void saveSinogram(int[][] sinogram, String name, String extension, int range) {
         BufferedImage bufferedImage = new BufferedImage(sinogram.length, sinogram[0].length, BufferedImage.TYPE_INT_RGB);
         for (int i = 0; i < sinogram.length; i++) {
             for (int j = 0; j < sinogram[0].length; j++) {
@@ -47,8 +47,12 @@ public class FileManager {
                 bufferedImage.setRGB(i, j, color.getRGB());
             }
         }
+        String filename = OUTPUT_DIRECTORY + "/" + SINOGRAMS_DIRECTORY + "/" + "sinogram-" + sinogram.length + "x" + range + "x" + sinogram[0].length + name;
+        writeImageToFile(bufferedImage, filename, extension);
+    }
+
+    private void writeImageToFile(BufferedImage bufferedImage, String filename, String extension) {
         try {
-            String filename = OUTPUT_DIRECTORY + "/" + SINOGRAMS_DIRECTORY + "/" + "sinogram-" + sinogram.length + "x" + sinogram[0].length + name;
             System.out.println(filename);
             File file = new File(filename);
             switch (extension) {
@@ -64,6 +68,18 @@ public class FileManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void saveEndImage(int[][] bitmap, String name, String extension) {
+        BufferedImage bufferedImage = new BufferedImage(bitmap.length, bitmap[0].length, BufferedImage.TYPE_INT_RGB);
+        for (int i = 0; i < bitmap.length; i++) {
+            for (int j = 0; j < bitmap[0].length; j++) {
+                Color color = new Color(bitmap[i][j], bitmap[i][j], bitmap[i][j], ALPHA_CHANNEL);
+                bufferedImage.setRGB(i, j, color.getRGB());
+            }
+        }
+        String filename = OUTPUT_DIRECTORY + "/" + "output-" + name;
+        writeImageToFile(bufferedImage, filename, extension);
     }
 
 }
