@@ -5,6 +5,7 @@ import sample.SinogramRowCalc;
 import java.util.LinkedList;
 import java.util.Observable;
 import java.util.Observer;
+
 import static java.lang.Math.*;
 
 public class SinogramCreator extends Observable implements Runnable {
@@ -28,10 +29,10 @@ public class SinogramCreator extends Observable implements Runnable {
     }
 
     @Override
-    public void run(){
+    public void run() {
         Thread[] rowCounters = new Thread[scansNumber];
-        for (int i = 0; i<scansNumber; i++){
-            rowCounters[i] = new Thread(new SinogramRowCalc(inputBitmap,sinogramBitmap, getEmitterAndDetectorsPositions(i),i));
+        for (int i = 0; i < scansNumber; i++) {
+            rowCounters[i] = new Thread(new SinogramRowCalc(inputBitmap, sinogramBitmap, getEmitterAndDetectorsPositions(i), i));
             rowCounters[i].start();
         }
         for (Thread rowCounter : rowCounters) {
@@ -44,25 +45,25 @@ public class SinogramCreator extends Observable implements Runnable {
         notifyObservers();
     }
 
-    private int[][] getEmitterAndDetectorsPositions(int rowScanNumber){
-        int radius = inputBitmap.length/2;
-        int[] center = {inputBitmap.length/2, inputBitmap[0].length/2};
-        int[][] positions = new int[detectorNumber+1][2];
-        double rotationAngle = ((double) rowScanNumber/(double)scansNumber)*360.0;
-        positions[0][0] = center[0]+(int)(radius*cos(toRadians(rotationAngle)));//emitter x
-        positions[0][1] = center[1]+(int)(radius*sin(toRadians(rotationAngle)));//emitter y
+    private int[][] getEmitterAndDetectorsPositions(int rowScanNumber) {
+        int radius = inputBitmap.length / 2;
+        int[] center = {inputBitmap.length / 2, inputBitmap[0].length / 2};
+        int[][] positions = new int[detectorNumber + 1][2];
+        double rotationAngle = ((double) rowScanNumber / (double) scansNumber) * 360.0;
+        positions[0][0] = center[0] + (int) (radius * cos(toRadians(rotationAngle)));//emitter x
+        positions[0][1] = center[1] + (int) (radius * sin(toRadians(rotationAngle)));//emitter y
 
-        for (int i = 1; i<positions.length; i++){
+        for (int i = 1; i < positions.length; i++) {
             double angle;
-            if (detectorNumber == 1){
-                angle = rotationAngle+HALF_FULL_ANGLE;
-            }else {
-                angle = rotationAngle+HALF_FULL_ANGLE-(double)angleRange/2+(i-1)*((double)angleRange/((double)detectorNumber-1));
+            if (detectorNumber == 1) {
+                angle = rotationAngle + HALF_FULL_ANGLE;
+            } else {
+                angle = rotationAngle + HALF_FULL_ANGLE - (double) angleRange / 2 + (i - 1) * ((double) angleRange / ((double) detectorNumber - 1));
             }
-            angle = angle > 360 ? angle-360 : angle;
+            angle = angle > 360 ? angle - 360 : angle;
             double radians = toRadians(angle);
-            positions[i][0] = center[0]+(int)(radius*cos(radians));//detector i x
-            positions[i][1] = center[1]+(int)(radius*sin(radians));//detector i y
+            positions[i][0] = center[0] + (int) (radius * cos(radians));//detector i x
+            positions[i][1] = center[1] + (int) (radius * sin(radians));//detector i y
         }
         return positions;
     }
@@ -82,8 +83,8 @@ public class SinogramCreator extends Observable implements Runnable {
     @Override
     public void notifyObservers() {
         super.notifyObservers();
-        for (Observer observer : observers){
-            observer.update(this,END_COMMUNICATE);
+        for (Observer observer : observers) {
+            observer.update(this, END_COMMUNICATE);
         }
     }
 
@@ -93,7 +94,7 @@ public class SinogramCreator extends Observable implements Runnable {
         observers.clear();
     }
 
-    public int[][] getSinogramBitmap(){
+    public int[][] getSinogramBitmap() {
         return sinogramBitmap;
     }
 }

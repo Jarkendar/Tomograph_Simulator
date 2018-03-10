@@ -8,10 +8,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -30,7 +27,6 @@ public class Controller implements Observer {
 
     private File file = null;
     private String fileExtension;
-    private Image originalImageInGrayScale;
     private ImageManager imageManager;
     private SinogramCreator sinogramCreator;
     private FileManager fileManager;
@@ -64,8 +60,9 @@ public class Controller implements Observer {
         measureNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (canCastToInteger(newValue)) {
                 int number = Integer.parseInt(newValue);
-                if (number > 0) {
+                if (number > 0 && number < 10001) {
                     transformButton.setDisable(!allInputDataIsCorrect());
+                    stepSlider.setMax(number);
                 } else {
                     transformButton.setDisable(!allInputDataIsCorrect());
                 }
@@ -131,7 +128,7 @@ public class Controller implements Observer {
     @Override
     public void update(Observable observable, Object arg) {
         if (observable instanceof SinogramCreator) {
-            fileManager.saveSinogram(((SinogramCreator)observable).getSinogramBitmap(),file.getName(), getFileExtension(file));
+            fileManager.saveSinogram(((SinogramCreator) observable).getSinogramBitmap(), file.getName(), getFileExtension(file));
             setSinogramImage(imageManager.createImageFromSinogram(((SinogramCreator) observable).getSinogramBitmap()));
             transformButton.setDisable(false);
         }
@@ -142,7 +139,7 @@ public class Controller implements Observer {
     }
 
     public void clickStartButton(ActionEvent actionEvent) {
-        SinogramCreator sinogramCreator = new SinogramCreator(imageManager.getBitmap(), Integer.parseInt(detectorNumberTextField.getText()), Integer.parseInt(measureNumberTextField.getText()), Integer.parseInt(degreesRangeTextField.getText()));
+        sinogramCreator = new SinogramCreator(imageManager.getBitmap(), Integer.parseInt(detectorNumberTextField.getText()), Integer.parseInt(measureNumberTextField.getText()), Integer.parseInt(degreesRangeTextField.getText()));
         sinogramCreator.addObserver(this);
         Thread thread = new Thread(sinogramCreator);
         thread.start();

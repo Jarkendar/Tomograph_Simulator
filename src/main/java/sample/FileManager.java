@@ -39,7 +39,7 @@ public class FileManager {
         }
     }
 
-    public void saveSinogram(int[][] sinogram, String fileName, String extension) {
+    public void saveSinogram(int[][] sinogram, String name, String extension) {
         BufferedImage bufferedImage = new BufferedImage(sinogram.length, sinogram[0].length, BufferedImage.TYPE_INT_RGB);
         for (int i = 0; i < sinogram.length; i++) {
             for (int j = 0; j < sinogram[0].length; j++) {
@@ -48,9 +48,9 @@ public class FileManager {
             }
         }
         try {
-            String name = OUTPUT_DIRECTORY + "/" + SINOGRAMS_DIRECTORY + "/" + "sinogram-"+ sinogram.length+"x"+sinogram[0].length + fileName;
-            System.out.println(name);
-            File file = new File(name);
+            String filename = OUTPUT_DIRECTORY + "/" + SINOGRAMS_DIRECTORY + "/" + "sinogram-" + sinogram.length + "x" + sinogram[0].length + name;
+            System.out.println(filename);
+            File file = new File(filename);
             switch (extension) {
                 case "png": {
                     ImageIO.write(bufferedImage, FORMAT_PNG, file);
