@@ -19,7 +19,7 @@ public class SinogramRowCalc implements Runnable {
     }
 
     private void createLinearFunctions(){
-        linearFunctionParameters = new double[positions.length][2];//first position is 0 0
+        linearFunctionParameters = new double[positions.length][2];//first position in matrix 0 0
         for (int i = 1; i<positions.length; i++){
             linearFunctionParameters[i][0] = ((double)(positions[0][1]-positions[i][1]))/((double)(positions[0][0]-positions[i][0]));
             linearFunctionParameters[i][1] = positions[0][1]-linearFunctionParameters[i][0]*positions[0][0];
