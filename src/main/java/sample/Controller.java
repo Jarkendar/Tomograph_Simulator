@@ -62,13 +62,22 @@ public class Controller implements Observer {
                 int number = Integer.parseInt(newValue);
                 if (number > 0 && number < 10001) {
                     transformButton.setDisable(!allInputDataIsCorrect());
-                    stepSlider.setMax(number);
+                    if (stepSlider.isDisable()) {
+                        setMaxSliderStep(number);
+                    }
                 } else {
                     transformButton.setDisable(!allInputDataIsCorrect());
                 }
             } else {
                 transformButton.setDisable(!allInputDataIsCorrect());
             }
+        });
+        stepSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            int position = newValue.intValue();
+            if (newValue.intValue() > stepSlider.getMax()) {
+                position = (int) stepSlider.getMax() - 1;
+            }
+            stepImage.setImage(fileManager.readTmpFile(file.getName(), position));
         });
         transformButton.setDisable(!allInputDataIsCorrect());
     }
@@ -140,10 +149,17 @@ public class Controller implements Observer {
                     fileManager.saveEndImage(((SinogramCreator) observable).getOutputImage(), file.getName(), getFileExtension(file));
                     setOutputImage(imageManager.createImageFromArray(((SinogramCreator) observable).getOutputImage()));
                     transformButton.setDisable(false);
+                    setMaxSliderStep(Integer.parseInt(measureNumberTextField.getText()));
+                    stepSlider.setDisable(false);
+                    stepImage.setImage(fileManager.readTmpFile(file.getName(), (int) stepSlider.getValue()));
                     break;
                 }
             }
         }
+    }
+
+    private void setMaxSliderStep(int i) {
+        stepSlider.setMax(i - 1);
     }
 
     private void setOutputImage(Image image) {
@@ -156,7 +172,7 @@ public class Controller implements Observer {
     }
 
     public void clickStartButton(ActionEvent actionEvent) {
-        sinogramCreator = new SinogramCreator(imageManager.getBitmap(), Integer.parseInt(detectorNumberTextField.getText()), Integer.parseInt(measureNumberTextField.getText()), Integer.parseInt(degreesRangeTextField.getText()));
+        sinogramCreator = new SinogramCreator(imageManager.getBitmap(), Integer.parseInt(detectorNumberTextField.getText()), Integer.parseInt(measureNumberTextField.getText()), Integer.parseInt(degreesRangeTextField.getText()), file.getName());
         sinogramCreator.addObserver(this);
         Thread thread = new Thread(sinogramCreator);
         thread.start();

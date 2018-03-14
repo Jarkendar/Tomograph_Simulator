@@ -1,5 +1,8 @@
 package sample;
 
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -75,12 +78,12 @@ public class FileManager {
         writeImageToFile(bufferedImage, filename, extension);
     }
 
-    public void saveTmpIndirectImage(int[][] bitmap, String name, int iteration){
-        TemporarySaveWorker tmp = new TemporarySaveWorker(bitmap,name,iteration);
+    public void saveTmpIndirectImage(int[][] bitmap, String name, int iteration) {
+        TemporarySaveWorker tmp = new TemporarySaveWorker(bitmap, name, iteration);
         new Thread(tmp).start();
     }
 
-    private BufferedImage makeBufferedImageFromBitmap(int[][] bitmap){
+    private BufferedImage makeBufferedImageFromBitmap(int[][] bitmap) {
         BufferedImage bufferedImage = new BufferedImage(bitmap.length, bitmap[0].length, BufferedImage.TYPE_INT_RGB);
         for (int i = 0; i < bitmap.length; i++) {
             for (int j = 0; j < bitmap[0].length; j++) {
@@ -91,7 +94,13 @@ public class FileManager {
         return bufferedImage;
     }
 
-    private class TemporarySaveWorker implements Runnable{
+    public Image readTmpFile(String name, int iteration) {
+        String path = OUTPUT_DIRECTORY + "/" + INDIRECT_IMAGES_DIRECTORY + "/" + name + "_" + iteration;
+        BufferedImage bufferedImage = readImageFromFile(new File(path));
+        return SwingFXUtils.toFXImage(bufferedImage, null);
+    }
+
+    private class TemporarySaveWorker implements Runnable {
 
         private int[][] bitmap;
         private String name;
@@ -107,7 +116,7 @@ public class FileManager {
         public void run() {
             normalize(bitmap);
             BufferedImage bufferedImage = makeBufferedImageFromBitmap(bitmap);
-            String path = OUTPUT_DIRECTORY+"/"+INDIRECT_IMAGES_DIRECTORY+"/"+name+"_"+iteration;
+            String path = OUTPUT_DIRECTORY + "/" + INDIRECT_IMAGES_DIRECTORY + "/" + name + "_" + iteration;
             writeImageToFile(bufferedImage, path, "jpg");
         }
 
@@ -130,7 +139,6 @@ public class FileManager {
                 }
             }
         }
-
     }
 
 

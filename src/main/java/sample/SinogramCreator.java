@@ -23,12 +23,14 @@ public class SinogramCreator extends Observable implements Runnable {
     private int angleRange;
     private LinkedList<Observer> observers = new LinkedList<>();
     private String status = STATUS_START;
+    private String name;
 
-    public SinogramCreator(int[][][] inputBitmap, int detectorNumber, int scansNumber, int angleRange) {
+    public SinogramCreator(int[][][] inputBitmap, int detectorNumber, int scansNumber, int angleRange, String name) {
         this.inputBitmap = inputBitmap;
         this.detectorNumber = detectorNumber;
         this.scansNumber = scansNumber;
         this.angleRange = angleRange;
+        this.name = name;
         sinogramBitmap = new int[detectorNumber][scansNumber];
         outputImage = new int[inputBitmap.length][inputBitmap[0].length];
     }
@@ -50,7 +52,7 @@ public class SinogramCreator extends Observable implements Runnable {
         }
         status = STATUS_SINOGRAM;
         notifyObservers();
-        createImageFromSinogram(new FileManager(), "test");
+        createImageFromSinogram(new FileManager(), name);
         status = STATUS_REVERSE;
         notifyObservers();
         status = STATUS_START;
@@ -145,10 +147,10 @@ public class SinogramCreator extends Observable implements Runnable {
         normalize(outputImage);
     }
 
-    private int[][] makeCopyBitmap(int[][] bitmap){
+    private int[][] makeCopyBitmap(int[][] bitmap) {
         int[][] copyBitmap = new int[bitmap.length][bitmap[0].length];
-        for (int i = 0; i<copyBitmap.length; i++){
-            for (int j = 0; j<copyBitmap[i].length; j++){
+        for (int i = 0; i < copyBitmap.length; i++) {
+            for (int j = 0; j < copyBitmap[i].length; j++) {
                 copyBitmap[i][j] = bitmap[i][j];
             }
         }
