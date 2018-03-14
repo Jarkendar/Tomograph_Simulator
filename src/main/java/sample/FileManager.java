@@ -53,7 +53,6 @@ public class FileManager {
 
     private void writeImageToFile(BufferedImage bufferedImage, String filename, String extension) {
         try {
-            System.out.println(filename);
             File file = new File(filename);
             switch (extension) {
                 case "png": {
@@ -71,6 +70,17 @@ public class FileManager {
     }
 
     public void saveEndImage(int[][] bitmap, String name, String extension) {
+        BufferedImage bufferedImage = makeBufferedImageFromBitmap(bitmap);
+        String filename = OUTPUT_DIRECTORY + "/" + "output-" + name;
+        writeImageToFile(bufferedImage, filename, extension);
+    }
+
+    public void saveTmpIndirectImage(int[][] bitmap, String name, int iteration){
+        TemporarySaveWorker tmp = new TemporarySaveWorker(bitmap,name,iteration);
+        new Thread(tmp).start();
+    }
+
+    private BufferedImage makeBufferedImageFromBitmap(int[][] bitmap){
         BufferedImage bufferedImage = new BufferedImage(bitmap.length, bitmap[0].length, BufferedImage.TYPE_INT_RGB);
         for (int i = 0; i < bitmap.length; i++) {
             for (int j = 0; j < bitmap[0].length; j++) {
@@ -78,8 +88,50 @@ public class FileManager {
                 bufferedImage.setRGB(i, j, color.getRGB());
             }
         }
-        String filename = OUTPUT_DIRECTORY + "/" + "output-" + name;
-        writeImageToFile(bufferedImage, filename, extension);
+        return bufferedImage;
     }
+
+    private class TemporarySaveWorker implements Runnable{
+
+        private int[][] bitmap;
+        private String name;
+        private int iteration;
+
+        TemporarySaveWorker(int[][] bitmap, String name, int iteration) {
+            this.bitmap = bitmap;
+            this.name = name;
+            this.iteration = iteration;
+        }
+
+        @Override
+        public void run() {
+            normalize(bitmap);
+            BufferedImage bufferedImage = makeBufferedImageFromBitmap(bitmap);
+            String path = OUTPUT_DIRECTORY+"/"+INDIRECT_IMAGES_DIRECTORY+"/"+name+"_"+iteration;
+            writeImageToFile(bufferedImage, path, "jpg");
+        }
+
+        private void normalize(int[][] bitmap) {
+            int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+            for (int[] aBitmap : bitmap) {
+                for (int anABitmap : aBitmap) {
+                    if (min > anABitmap) {
+                        min = anABitmap;
+                    }
+                    if (max < anABitmap) {
+                        max = anABitmap;
+                    }
+                }
+            }
+            max = max - min;
+            for (int i = 0; i < bitmap.length; i++) {
+                for (int j = 0; j < bitmap[0].length; j++) {
+                    bitmap[i][j] = (int) (((double) (bitmap[i][j] - min) / (double) max) * (255.0));
+                }
+            }
+        }
+
+    }
+
 
 }

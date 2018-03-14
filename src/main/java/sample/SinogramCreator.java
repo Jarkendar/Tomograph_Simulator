@@ -50,7 +50,7 @@ public class SinogramCreator extends Observable implements Runnable {
         }
         status = STATUS_SINOGRAM;
         notifyObservers();
-        createImageFromSinogram();
+        createImageFromSinogram(new FileManager(), "test");
         status = STATUS_REVERSE;
         notifyObservers();
         status = STATUS_START;
@@ -102,7 +102,7 @@ public class SinogramCreator extends Observable implements Runnable {
     }
 
     @Override
-    public void notifyObservers() {
+    public synchronized void notifyObservers() {
         super.notifyObservers();
         for (Observer observer : observers) {
             switch (status) {
@@ -132,7 +132,7 @@ public class SinogramCreator extends Observable implements Runnable {
         return outputImage;
     }
 
-    private void createImageFromSinogram() {
+    private void createImageFromSinogram(FileManager fileManager, String name) {
         for (int i = 0; i < scansNumber; i++) {
             int[][] positions = getEmitterAndDetectorsPositions(i);
             double[][] linearFunctionParameters = createLinearFunctions(positions);
@@ -140,8 +140,19 @@ public class SinogramCreator extends Observable implements Runnable {
                 int color = sinogramBitmap[j][i];
                 fillBitmapColor(outputImage, color, positions, linearFunctionParameters, j + 1);
             }
+            fileManager.saveTmpIndirectImage(makeCopyBitmap(outputImage), name, i);
         }
         normalize(outputImage);
+    }
+
+    private int[][] makeCopyBitmap(int[][] bitmap){
+        int[][] copyBitmap = new int[bitmap.length][bitmap[0].length];
+        for (int i = 0; i<copyBitmap.length; i++){
+            for (int j = 0; j<copyBitmap[i].length; j++){
+                copyBitmap[i][j] = bitmap[i][j];
+            }
+        }
+        return copyBitmap;
     }
 
     private void fillBitmapColor(int[][] bitmap, int color, int[][] positions, double[][] linearFunctionParameters, int currentDetector) {
