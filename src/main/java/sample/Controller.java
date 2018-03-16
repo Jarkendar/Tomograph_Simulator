@@ -172,7 +172,9 @@ public class Controller implements Observer {
     }
 
     public void clickStartButton(ActionEvent actionEvent) {
-        sinogramCreator = new SinogramCreator(imageManager.getBitmap(), Integer.parseInt(detectorNumberTextField.getText()), Integer.parseInt(measureNumberTextField.getText()), Integer.parseInt(degreesRangeTextField.getText()), file.getName());
+        sinogramCreator = new SinogramCreator(imageManager.getBitmap(), Integer.parseInt(detectorNumberTextField.getText()),
+                Integer.parseInt(measureNumberTextField.getText()), Integer.parseInt(degreesRangeTextField.getText()),
+                file.getName(), filteringCheckBox.isSelected());
         sinogramCreator.addObserver(this);
         Thread thread = new Thread(sinogramCreator);
         thread.start();
@@ -180,6 +182,7 @@ public class Controller implements Observer {
     }
 
     private void reverseDisableFields() {
+        stepSlider.setDisable(!stepSlider.isDisable());
         transformButton.setDisable(!transformButton.isDisable());
         measureNumberTextField.setDisable(!measureNumberTextField.isDisable());
         detectorNumberTextField.setDisable(!detectorNumberTextField.isDisable());

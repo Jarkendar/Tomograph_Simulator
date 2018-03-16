@@ -46,7 +46,10 @@ public class FileManager {
         BufferedImage bufferedImage = new BufferedImage(sinogram.length, sinogram[0].length, BufferedImage.TYPE_INT_RGB);
         for (int i = 0; i < sinogram.length; i++) {
             for (int j = 0; j < sinogram[0].length; j++) {
-                Color color = new Color(sinogram[i][j], sinogram[i][j], sinogram[i][j], ALPHA_CHANNEL);
+                int colorValue = sinogram[i][j];
+                if (colorValue<0) colorValue = 0;
+                if (colorValue>255) colorValue =255;
+                Color color = new Color(colorValue, colorValue, colorValue, ALPHA_CHANNEL);
                 bufferedImage.setRGB(i, j, color.getRGB());
             }
         }
