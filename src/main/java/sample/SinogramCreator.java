@@ -142,7 +142,7 @@ public class SinogramCreator extends Observable implements Runnable {
                 int color = sinogramBitmap[j][i];
                 fillBitmapColor(outputImage, color, positions, linearFunctionParameters, j + 1);
             }
-            fileManager.saveTmpIndirectImage(makeCopyBitmap(outputImage), name, i);
+            new Thread(new Normalizer(makeCopyBitmap(outputImage), fileManager, i)).start();
         }
         normalize(outputImage);
     }
@@ -185,4 +185,24 @@ public class SinogramCreator extends Observable implements Runnable {
             }
         }
     }
+
+
+    private class Normalizer implements Runnable {
+        private int numberOfIteration;
+        private int[][] bitmap;
+        private FileManager fileManager;
+
+        Normalizer(int[][] bitmap, FileManager fileManager, int numberOfIteration){
+            this.bitmap = bitmap;
+            this.fileManager = fileManager;
+            this.numberOfIteration = numberOfIteration;
+        }
+
+        @Override
+        public void run() {
+            normalize(bitmap);
+            fileManager.saveTmpIndirectImage(bitmap, name, numberOfIteration);
+        }
+    }
+
 }

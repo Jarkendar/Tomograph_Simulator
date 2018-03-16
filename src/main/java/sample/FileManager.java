@@ -114,31 +114,11 @@ public class FileManager {
 
         @Override
         public void run() {
-            normalize(bitmap);
             BufferedImage bufferedImage = makeBufferedImageFromBitmap(bitmap);
             String path = OUTPUT_DIRECTORY + "/" + INDIRECT_IMAGES_DIRECTORY + "/" + name + "_" + iteration;
             writeImageToFile(bufferedImage, path, "jpg");
         }
 
-        private void normalize(int[][] bitmap) {
-            int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
-            for (int[] aBitmap : bitmap) {
-                for (int anABitmap : aBitmap) {
-                    if (min > anABitmap) {
-                        min = anABitmap;
-                    }
-                    if (max < anABitmap) {
-                        max = anABitmap;
-                    }
-                }
-            }
-            max = max - min;
-            for (int i = 0; i < bitmap.length; i++) {
-                for (int j = 0; j < bitmap[0].length; j++) {
-                    bitmap[i][j] = (int) (((double) (bitmap[i][j] - min) / (double) max) * (255.0));
-                }
-            }
-        }
     }
 
 
