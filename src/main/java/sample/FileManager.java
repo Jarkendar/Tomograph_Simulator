@@ -22,7 +22,9 @@ public class FileManager {
     public FileManager() {
         checkDirectory(new File(OUTPUT_DIRECTORY));
         checkDirectory(new File(OUTPUT_DIRECTORY + "/" + SINOGRAMS_DIRECTORY));
-        checkDirectory(new File(OUTPUT_DIRECTORY + "/" + INDIRECT_IMAGES_DIRECTORY));
+        File temporaryDirectory = new File(OUTPUT_DIRECTORY + "/" + INDIRECT_IMAGES_DIRECTORY);
+        checkDirectory(temporaryDirectory);
+        clearTemporaryDirectory(temporaryDirectory);
     }
 
     private void checkDirectory(File file) {
@@ -31,6 +33,14 @@ public class FileManager {
         }
     }
 
+    private void clearTemporaryDirectory(File file) {
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            for (File f : files) {
+                f.delete();
+            }
+        }
+    }
 
     public BufferedImage readImageFromFile(File file) {
         try {
@@ -47,8 +57,8 @@ public class FileManager {
         for (int i = 0; i < sinogram.length; i++) {
             for (int j = 0; j < sinogram[0].length; j++) {
                 int colorValue = sinogram[i][j];
-                if (colorValue<0) colorValue = 0;
-                if (colorValue>255) colorValue =255;
+                if (colorValue < 0) colorValue = 0;
+                if (colorValue > 255) colorValue = 255;
                 Color color = new Color(colorValue, colorValue, colorValue, ALPHA_CHANNEL);
                 bufferedImage.setRGB(i, j, color.getRGB());
             }
@@ -75,15 +85,16 @@ public class FileManager {
         }
     }
 
-    public void saveEndImage(int[][] bitmap, String name, String extension) {
+    public void saveOutputImage(int[][] bitmap, String name, String extension) {
         BufferedImage bufferedImage = makeBufferedImageFromBitmap(bitmap);
         String filename = OUTPUT_DIRECTORY + "/" + "output-" + name;
         writeImageToFile(bufferedImage, filename, extension);
     }
 
-    public void saveTmpIndirectImage(int[][] bitmap, String name, int iteration) {
-        TemporarySaveWorker tmp = new TemporarySaveWorker(bitmap, name, iteration);
-        new Thread(tmp).start();
+    public void saveIndirectImage(int[][] bitmap, String name, int iteration) {
+        BufferedImage bufferedImage = makeBufferedImageFromBitmap(bitmap);
+        String path = OUTPUT_DIRECTORY + "/" + INDIRECT_IMAGES_DIRECTORY + "/" + name + "_" + iteration;
+        writeImageToFile(bufferedImage, path, "jpg");
     }
 
     private BufferedImage makeBufferedImageFromBitmap(int[][] bitmap) {
@@ -102,27 +113,4 @@ public class FileManager {
         BufferedImage bufferedImage = readImageFromFile(new File(path));
         return SwingFXUtils.toFXImage(bufferedImage, null);
     }
-
-    private class TemporarySaveWorker implements Runnable {
-
-        private int[][] bitmap;
-        private String name;
-        private int iteration;
-
-        TemporarySaveWorker(int[][] bitmap, String name, int iteration) {
-            this.bitmap = bitmap;
-            this.name = name;
-            this.iteration = iteration;
-        }
-
-        @Override
-        public void run() {
-            BufferedImage bufferedImage = makeBufferedImageFromBitmap(bitmap);
-            String path = OUTPUT_DIRECTORY + "/" + INDIRECT_IMAGES_DIRECTORY + "/" + name + "_" + iteration;
-            writeImageToFile(bufferedImage, path, "jpg");
-        }
-
-    }
-
-
 }

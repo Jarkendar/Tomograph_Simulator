@@ -26,50 +26,51 @@ public class Controller implements Observer {
     public Button transformButton;
 
     private File file = null;
-    private String fileExtension;
     private ImageManager imageManager;
-    private SinogramCreator sinogramCreator;
     private FileManager fileManager;
+
+    private long start;
+    private long stop;
 
     public void initialize() {
         fileManager = new FileManager();
         detectorNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (canCastToInteger(newValue)) {
-                int number = Integer.parseInt(newValue);
-                if (number > 0) {
-                    transformButton.setDisable(!allInputDataIsCorrect());
+                int value = Integer.parseInt(newValue);
+                if (value > 0) {
+                    transformButton.setDisable(!canPressStartButton());
                 } else {
-                    transformButton.setDisable(!allInputDataIsCorrect());
+                    transformButton.setDisable(!canPressStartButton());
                 }
             } else {
-                transformButton.setDisable(!allInputDataIsCorrect());
+                transformButton.setDisable(!canPressStartButton());
             }
         });
         degreesRangeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (canCastToInteger(newValue)) {
                 int number = Integer.parseInt(newValue);
                 if (number > 0 && number < 360) {
-                    transformButton.setDisable(!allInputDataIsCorrect());
+                    transformButton.setDisable(!canPressStartButton());
                 } else {
-                    transformButton.setDisable(allInputDataIsCorrect());
+                    transformButton.setDisable(canPressStartButton());
                 }
             } else {
-                transformButton.setDisable(!allInputDataIsCorrect());
+                transformButton.setDisable(!canPressStartButton());
             }
         });
         measureNumberTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             if (canCastToInteger(newValue)) {
                 int number = Integer.parseInt(newValue);
                 if (number > 0 && number < 10001) {
-                    transformButton.setDisable(!allInputDataIsCorrect());
+                    transformButton.setDisable(!canPressStartButton());
                     if (stepSlider.isDisable()) {
                         setMaxSliderStep(number);
                     }
                 } else {
-                    transformButton.setDisable(!allInputDataIsCorrect());
+                    transformButton.setDisable(!canPressStartButton());
                 }
             } else {
-                transformButton.setDisable(!allInputDataIsCorrect());
+                transformButton.setDisable(!canPressStartButton());
             }
         });
         stepSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -79,19 +80,18 @@ public class Controller implements Observer {
             }
             stepImage.setImage(fileManager.readTmpFile(file.getName(), position));
         });
-        transformButton.setDisable(!allInputDataIsCorrect());
+        transformButton.setDisable(!canPressStartButton());
     }
 
     private boolean canCastToInteger(String text) {
         return text.matches("[0-9]+");
     }
 
-    private boolean allInputDataIsCorrect() {
-        if (file == null) return false;
-        if (!canCastToInteger(detectorNumberTextField.getText())) return false;
-        if (!canCastToInteger(degreesRangeTextField.getText())) return false;
-        if (!canCastToInteger(measureNumberTextField.getText())) return false;
-        return true;
+    private boolean canPressStartButton() {
+        return file != null
+                && canCastToInteger(detectorNumberTextField.getText())
+                && canCastToInteger(degreesRangeTextField.getText())
+                && canCastToInteger(measureNumberTextField.getText());
     }
 
     public void clickChooseFile(ActionEvent actionEvent) {
@@ -99,7 +99,7 @@ public class Controller implements Observer {
         file = Main.openFileChooser();
 
         if (file != null) {
-            fileExtension = getFileExtension(file);
+            String fileExtension = getFileExtension(file);
             switch (fileExtension) {
                 case "DICOM": {
                     //todo do something
@@ -114,9 +114,9 @@ public class Controller implements Observer {
                     break;
                 }
             }
-            transformButton.setDisable(!allInputDataIsCorrect());
+            transformButton.setDisable(!canPressStartButton());
         } else {
-            transformButton.setDisable(allInputDataIsCorrect());
+            transformButton.setDisable(canPressStartButton());
         }
     }
 
@@ -130,6 +130,7 @@ public class Controller implements Observer {
         try {
             return name.substring(name.lastIndexOf(".") + 1);
         } catch (Exception e) {
+            e.printStackTrace();
             return "";
         }
     }
@@ -142,12 +143,11 @@ public class Controller implements Observer {
                 case SinogramCreator.SINOGRAM_IS_END: {
                     fileManager.saveSinogram(((SinogramCreator) observable).getSinogramBitmap(), file.getName(), getFileExtension(file), Integer.parseInt(degreesRangeTextField.getText()));
                     setSinogramImage(imageManager.createImageFromSinogram(((SinogramCreator) observable).getSinogramBitmap()));
-//                    transformButton.setDisable(false);
                     break;
                 }
                 case SinogramCreator.REVERSE_IS_END: {
-                    fileManager.saveEndImage(((SinogramCreator) observable).getOutputImage(), file.getName(), getFileExtension(file));
-                    setOutputImage(imageManager.createImageFromArray(((SinogramCreator) observable).getOutputImage()));
+                    fileManager.saveOutputImage(((SinogramCreator) observable).getOutputBitmap(), file.getName(), getFileExtension(file));
+                    setOutputImage(imageManager.createImageFromArray(((SinogramCreator) observable).getOutputBitmap()));
                     transformButton.setDisable(false);
                     setMaxSliderStep(Integer.parseInt(measureNumberTextField.getText()));
                     stepSlider.setDisable(false);
@@ -165,6 +165,8 @@ public class Controller implements Observer {
     private void setOutputImage(Image image) {
         outputImage.setImage(image);
         reverseDisableFields();
+        stop = System.currentTimeMillis();
+        System.out.println("Time = "+(stop-start)+"ms");
     }
 
     private void setSinogramImage(Image image) {
@@ -172,17 +174,18 @@ public class Controller implements Observer {
     }
 
     public void clickStartButton(ActionEvent actionEvent) {
-        sinogramCreator = new SinogramCreator(imageManager.getBitmap(), Integer.parseInt(detectorNumberTextField.getText()),
+        SinogramCreator sinogramCreator = new SinogramCreator(imageManager.getBitmap(), Integer.parseInt(detectorNumberTextField.getText()),
                 Integer.parseInt(measureNumberTextField.getText()), Integer.parseInt(degreesRangeTextField.getText()),
                 file.getName(), filteringCheckBox.isSelected());
         sinogramCreator.addObserver(this);
-        Thread thread = new Thread(sinogramCreator);
-        thread.start();
+        new Thread(sinogramCreator).start();
         reverseDisableFields();
+        stepSlider.setDisable(true);
+        start = System.currentTimeMillis();
     }
 
     private void reverseDisableFields() {
-        stepSlider.setDisable(!stepSlider.isDisable());
+        filteringCheckBox.setDisable(!filteringCheckBox.isDisable());
         transformButton.setDisable(!transformButton.isDisable());
         measureNumberTextField.setDisable(!measureNumberTextField.isDisable());
         detectorNumberTextField.setDisable(!detectorNumberTextField.isDisable());

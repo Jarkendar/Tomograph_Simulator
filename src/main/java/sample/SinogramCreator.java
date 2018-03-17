@@ -1,4 +1,4 @@
-package sample;//package sample;
+package sample;
 
 import java.util.LinkedList;
 import java.util.Observable;
@@ -16,7 +16,7 @@ public class SinogramCreator extends Observable implements Runnable {
     private final static String STATUS_REVERSE = "reverse";
 
     private int[][][] inputBitmap;
-    private int[][] outputImage;
+    private int[][] outputBitmap;
     private int[][] sinogramBitmap;
     private int detectorNumber;
     private int scansNumber;
@@ -24,17 +24,17 @@ public class SinogramCreator extends Observable implements Runnable {
     private LinkedList<Observer> observers = new LinkedList<>();
     private String status = STATUS_START;
     private String name;
-    private boolean filtering;
+    private boolean isFiltering;
 
-    public SinogramCreator(int[][][] inputBitmap, int detectorNumber, int scansNumber, int angleRange, String name, boolean filtering) {
+    public SinogramCreator(int[][][] inputBitmap, int detectorNumber, int scansNumber, int angleRange, String name, boolean isFiltering) {
         this.inputBitmap = inputBitmap;
         this.detectorNumber = detectorNumber;
         this.scansNumber = scansNumber;
         this.angleRange = angleRange;
         this.name = name;
-        this.filtering = filtering;
+        this.isFiltering = isFiltering;
         sinogramBitmap = new int[detectorNumber][scansNumber];
-        outputImage = new int[inputBitmap.length][inputBitmap[0].length];
+        outputBitmap = new int[inputBitmap.length][inputBitmap[0].length];
     }
 
     @Override
@@ -52,7 +52,7 @@ public class SinogramCreator extends Observable implements Runnable {
                 e.printStackTrace();
             }
         }
-        if (filtering) {
+        if (isFiltering) {
             filterRamLakSinogram();
         }
         status = STATUS_SINOGRAM;
@@ -62,7 +62,6 @@ public class SinogramCreator extends Observable implements Runnable {
         notifyObservers();
         status = STATUS_START;
     }
-
 
     private double[][] createLinearFunctions(int[][] positions) {
         double[][] linearFunctionParameters = new double[positions.length][2];//first position in matrix 0 0
@@ -135,29 +134,31 @@ public class SinogramCreator extends Observable implements Runnable {
         return sinogramBitmap;
     }
 
-    public int[][] getOutputImage() {
-        return outputImage;
+    public int[][] getOutputBitmap() {
+        return outputBitmap;
     }
 
     private void createImageFromSinogram(FileManager fileManager, String name) {
         for (int i = 0; i < scansNumber; i++) {
+            int[][] tmp = new int[outputBitmap.length][outputBitmap[0].length];
             int[][] positions = getEmitterAndDetectorsPositions(i);
             double[][] linearFunctionParameters = createLinearFunctions(positions);
             for (int j = 0; j < detectorNumber; j++) {
                 int color = sinogramBitmap[j][i];
-                fillBitmapColor(outputImage, color, positions, linearFunctionParameters, j + 1);
+                fillBitmapColor(tmp, color, positions, linearFunctionParameters, j + 1);
             }
-            new Thread(new Normalizer(makeCopyBitmap(outputImage), fileManager, i)).start();
+            new Thread(new Normalizer(makeCopyBitmap(tmp), fileManager, i)).start();
         }
-        normalize(outputImage);
+        normalize(outputBitmap);
     }
 
     private int[][] makeCopyBitmap(int[][] bitmap) {
         int[][] copyBitmap = new int[bitmap.length][bitmap[0].length];
         for (int i = 0; i < copyBitmap.length; i++) {
             for (int j = 0; j < copyBitmap[i].length; j++) {
-                copyBitmap[i][j] = bitmap[i][j];
+                outputBitmap[i][j] += bitmap[i][j];
             }
+            copyBitmap[i] = outputBitmap[i].clone();
         }
         return copyBitmap;
     }
@@ -167,19 +168,19 @@ public class SinogramCreator extends Observable implements Runnable {
         for (int i = 1; i < numberOfStep; i++) {
             int currentX = positions[0][0] < positions[currentDetector][0] ? (positions[0][0] + i) : (positions[0][0] - i);
             int currentY = (int) (linearFunctionParameters[currentDetector][0] * currentX + linearFunctionParameters[currentDetector][1]);
-            bitmap[currentX][currentY] += color;
+            bitmap[currentX][currentY] = color > bitmap[currentX][currentY] ? color : bitmap[currentX][currentY];
         }
     }
 
     private void normalize(int[][] bitmap) {
         int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
-        for (int[] aBitmap : bitmap) {
-            for (int anABitmap : aBitmap) {
-                if (min > anABitmap) {
-                    min = anABitmap;
+        for (int[] row : bitmap) {
+            for (int cell : row) {
+                if (min > cell) {
+                    min = cell;
                 }
-                if (max < anABitmap) {
-                    max = anABitmap;
+                if (max < cell) {
+                    max = cell;
                 }
             }
         }
@@ -192,14 +193,13 @@ public class SinogramCreator extends Observable implements Runnable {
         }
     }
 
-
     private void filterRamLakSinogram() {
         double[] filterMask = createMaskRamLak();
         convolveSinogram(filterMask);
     }
 
     private double[] createMaskRamLak() {
-        double[] filterMask = new double[sinogramBitmap[0].length / 100];
+        double[] filterMask = new double[sinogramBitmap[0].length / 20];
         double mul = 255.0;
         filterMask[0] = 1.0 * mul;
         double numerator = (-4.0) / (PI * PI) * mul;
@@ -207,20 +207,20 @@ public class SinogramCreator extends Observable implements Runnable {
             if (i % 2 == 0) {
                 filterMask[i] = 0;
             } else {
-                filterMask[i] = numerator / (i * i);
+                filterMask[i] = numerator / Math.pow(i,2);
             }
         }
         return filterMask;
     }
 
     private void convolveSinogram(double[] mask) {
-        int[][] tmp = new int[sinogramBitmap.length][sinogramBitmap[0].length];
+        int[][] convolveSinogram = new int[sinogramBitmap.length][sinogramBitmap[0].length];
         for (int i = 0; i < sinogramBitmap.length; i++) {
             for (int j = 0; j < sinogramBitmap[0].length; j++) {
-                tmp[i][j] = convolveForCell(mask, sinogramBitmap[i], j);
+                convolveSinogram[i][j] = convolveForCell(mask, sinogramBitmap[i], j);
             }
         }
-        sinogramBitmap = tmp;
+        sinogramBitmap = convolveSinogram;
     }
 
     private int convolveForCell(double[] mask, int[] row, int cellPosition) {
@@ -229,12 +229,10 @@ public class SinogramCreator extends Observable implements Runnable {
         int stopPosition = cellPosition + (mask.length - 1) > (row.length - 1) ? (row.length - 1) : cellPosition + (mask.length - 1);
         int iterator = (stopPosition-startPosition)/2;
         for (int i = startPosition; i <= stopPosition; i++) {
-            value += row[i]*mask[Math.abs(iterator)];
-            iterator--;
+            value += row[i]*mask[Math.abs(iterator--)];
         }
         return (int) value;
     }
-
 
     private class Normalizer implements Runnable {
         private int numberOfIteration;
@@ -250,7 +248,7 @@ public class SinogramCreator extends Observable implements Runnable {
         @Override
         public void run() {
             normalize(bitmap);
-            fileManager.saveTmpIndirectImage(bitmap, name, numberOfIteration);
+            fileManager.saveIndirectImage(bitmap, name, numberOfIteration);
         }
     }
 

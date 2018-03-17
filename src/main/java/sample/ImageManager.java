@@ -21,7 +21,7 @@ public class ImageManager {
         for (int i = 0; i < matrixSize; i++) {
             for (int j = 0; j < matrixSize; j++) {
                 Color color = new Color(bufferedImage.getRGB(startIForImage + i, startJForImage + j));
-                int gray = (color.getBlue() + color.getGreen() + color.getRed()) / 3;
+                int gray = (int) (0.11 * color.getBlue()) + (int) (0.59 * color.getGreen()) + (int) (0.30 * color.getRed());
                 bitmap[i][j][0] = gray;
                 bitmap[i][j][1] = color.getAlpha();
             }
@@ -70,8 +70,8 @@ public class ImageManager {
                 int ySinogram = (imageSize - height) / 2;
                 if (i >= xSinogram && j >= ySinogram && (i - xSinogram) < sinogram.length && (j - ySinogram) < sinogram[0].length) {
                     int colorValue = sinogram[i - xSinogram][j - ySinogram];
-                    if (colorValue<0) colorValue = 0;
-                    if (colorValue>255) colorValue =255;
+                    if (colorValue < 0) colorValue = 0;
+                    if (colorValue > 255) colorValue = 255;
                     color = new Color(colorValue, colorValue, colorValue, 255);
                 }
                 image.setRGB(i, j, color.getRGB());

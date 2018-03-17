@@ -26,14 +26,15 @@ public class SinogramRowCalc implements Runnable {
     }
 
     private int countAverageValueOnLineFromEmitterToDetector(int numberOfDetector) {
-        double step = ((double) Math.abs(positions[0][0] - positions[numberOfDetector][0])) / ((double) NUMBER_OF_MEASURE_ON_LINE);
+        int numberOfMeasure = Math.abs(positions[0][0] - positions[numberOfDetector][0]);
+        if (numberOfMeasure == 0) numberOfMeasure = 1;
         int sum = 0;
-        for (int i = 1; i < NUMBER_OF_MEASURE_ON_LINE; i++) {
-            double currentX = positions[0][0] < positions[numberOfDetector][0] ? (positions[0][0] + step * i) : (positions[0][0] - step * i);
+        for (int step = 1; step < numberOfMeasure; step++) {
+            double currentX = positions[0][0] < positions[numberOfDetector][0] ? (positions[0][0] + step) : (positions[0][0] - step);
             double currentY = linearFunctionParameters[numberOfDetector][0] * currentX + linearFunctionParameters[numberOfDetector][1];
             sum += getColorFromPixel((int) currentX, (int) currentY);
         }
-        return sum / NUMBER_OF_MEASURE_ON_LINE;
+        return sum / numberOfMeasure;
     }
 
     private int getColorFromPixel(int x, int y) {
