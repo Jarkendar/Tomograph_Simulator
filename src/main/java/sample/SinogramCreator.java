@@ -57,19 +57,10 @@ public class SinogramCreator extends Observable implements Runnable {
         }
         status = STATUS_SINOGRAM;
         notifyObservers();
-        createImageFromSinogram(new FileManager(), name);
+        createImageFromSinogram(new FileManager());
         status = STATUS_REVERSE;
         notifyObservers();
         status = STATUS_START;
-    }
-
-    private double[][] createLinearFunctions(int[][] positions) {
-        double[][] linearFunctionParameters = new double[positions.length][2];//first position in matrix 0 0
-        for (int i = 1; i < positions.length; i++) {
-            linearFunctionParameters[i][0] = ((double) (positions[0][1] - positions[i][1])) / ((double) (positions[0][0] - positions[i][0]));
-            linearFunctionParameters[i][1] = positions[0][1] - linearFunctionParameters[i][0] * positions[0][0];
-        }
-        return linearFunctionParameters;
     }
 
     private int[][] getEmitterAndDetectorsPositions(int rowScanNumber) {
@@ -138,14 +129,13 @@ public class SinogramCreator extends Observable implements Runnable {
         return outputBitmap;
     }
 
-    private void createImageFromSinogram(FileManager fileManager, String name) {
+    private void createImageFromSinogram(FileManager fileManager) {
         for (int i = 0; i < scansNumber; i++) {
             int[][] tmp = new int[outputBitmap.length][outputBitmap[0].length];
             int[][] positions = getEmitterAndDetectorsPositions(i);
-            double[][] linearFunctionParameters = createLinearFunctions(positions);
-            for (int j = 0; j < detectorNumber; j++) {
-                int color = sinogramBitmap[j][i];
-                fillBitmapColor(tmp, color, positions, linearFunctionParameters, j + 1);
+            for (int j = 1; j <= detectorNumber; j++) {
+                int color = sinogramBitmap[j - 1][i];
+                bresenhamFill(tmp, color, positions, j);
             }
             new Thread(new Normalizer(makeCopyBitmap(tmp), fileManager, i)).start();
         }
@@ -163,13 +153,55 @@ public class SinogramCreator extends Observable implements Runnable {
         return copyBitmap;
     }
 
-    private void fillBitmapColor(int[][] bitmap, int color, int[][] positions, double[][] linearFunctionParameters, int currentDetector) {
-        int numberOfStep = Math.abs(positions[0][0] - positions[currentDetector][0]);
-        for (int i = 1; i < numberOfStep; i++) {
-            int currentX = positions[0][0] < positions[currentDetector][0] ? (positions[0][0] + i) : (positions[0][0] - i);
-            int currentY = (int) (linearFunctionParameters[currentDetector][0] * currentX + linearFunctionParameters[currentDetector][1]);
-            bitmap[currentX][currentY] = color > bitmap[currentX][currentY] ? color : bitmap[currentX][currentY];
+    private void bresenhamFill(int[][] bitmap, int color, int[][] positions, int currentDetector) {
+        int coefficientD = 0;
+
+        int dx = Math.abs(positions[currentDetector][0] - positions[0][0]);//lenght on axis X
+        int dy = Math.abs(positions[currentDetector][1] - positions[0][1]);//lenght on axis Y
+
+        int stepX = positions[0][0] < positions[currentDetector][0] ? 1 : -1;//direction RIGHT/LEFT
+        int stepY = positions[0][1] < positions[currentDetector][1] ? 1 : -1;//direction DOWN/UP
+
+        //start position
+        int actualX = positions[0][0];
+        int actualY = positions[0][1];
+
+        if (dx >= dy) {//a <= 45 degrees
+            while (true) {
+                if (isInImage(actualX, actualY, bitmap)) {
+                    bitmap[actualX][actualY] = color > bitmap[actualX][actualY] ? color : bitmap[actualX][actualY];
+                }
+                if (actualX == positions[currentDetector][0]) {
+                    break;
+                }
+                actualX += stepX;
+                coefficientD += dy;
+                if (coefficientD > dx) {
+                    actualY += stepY;
+                    coefficientD -= dx;
+                }
+            }
+        } else {//a > 45 degrees
+            while (true) {
+                if (isInImage(actualX, actualY, bitmap)) {
+                    bitmap[actualX][actualY] = color > bitmap[actualX][actualY] ? color : bitmap[actualX][actualY];
+                }
+                if (actualY == positions[currentDetector][1]) {
+                    break;
+                }
+                actualY += stepY;
+                coefficientD += dx;
+                if (coefficientD > dy) {
+                    actualX += stepX;
+                    coefficientD -= dy;
+                }
+            }
         }
+
+    }
+
+    private boolean isInImage(int x, int y, int[][] referenceToBitmap) {
+        return x < referenceToBitmap.length && y < referenceToBitmap[0].length;
     }
 
     private void normalize(int[][] bitmap) {
@@ -207,7 +239,7 @@ public class SinogramCreator extends Observable implements Runnable {
             if (i % 2 == 0) {
                 filterMask[i] = 0;
             } else {
-                filterMask[i] = numerator / Math.pow(i,2);
+                filterMask[i] = numerator / Math.pow(i, 2);
             }
         }
         return filterMask;
@@ -225,11 +257,11 @@ public class SinogramCreator extends Observable implements Runnable {
 
     private int convolveForCell(double[] mask, int[] row, int cellPosition) {
         double value = 0.0;
-        int startPosition = cellPosition - (mask.length - 1) <= 0 ? 0 : cellPosition-(mask.length-1);
+        int startPosition = cellPosition - (mask.length - 1) <= 0 ? 0 : cellPosition - (mask.length - 1);
         int stopPosition = cellPosition + (mask.length - 1) > (row.length - 1) ? (row.length - 1) : cellPosition + (mask.length - 1);
-        int iterator = (stopPosition-startPosition)/2;
+        int iterator = (stopPosition - startPosition) / 2;
         for (int i = startPosition; i <= stopPosition; i++) {
-            value += row[i]*mask[Math.abs(iterator--)];
+            value += row[i] * mask[Math.abs(iterator--)];
         }
         return (int) value;
     }
