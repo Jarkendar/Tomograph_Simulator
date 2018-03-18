@@ -42,7 +42,7 @@ public class SinogramCreator extends Observable implements Runnable {
         Thread[] rowCounters = new Thread[scansNumber];
         for (int i = 0; i < scansNumber; i++) {
             int[][] positions = getEmitterAndDetectorsPositions(i);
-            rowCounters[i] = new Thread(new SinogramRowCalc(inputBitmap, sinogramBitmap, positions, i, createLinearFunctions(positions)));
+            rowCounters[i] = new Thread(new SinogramRowCalc(inputBitmap, sinogramBitmap, positions, i));
             rowCounters[i].start();
         }
         for (Thread rowCounter : rowCounters) {
