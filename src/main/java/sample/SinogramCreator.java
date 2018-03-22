@@ -36,16 +36,16 @@ public class SinogramCreator extends Observable implements Runnable {
         this.isFiltering = isFiltering;
         sinogramBitmap = new int[detectorNumber][scansNumber];
         outputBitmap = new int[inputBitmap.length][inputBitmap[0].length];
-        mseArray = new double[1+scansNumber];
+        mseArray = new double[1 + scansNumber];
         countMaxMSE();
     }
 
 
-    private void countMaxMSE(){
+    private void countMaxMSE() {
         long sumMSE = 0;
-        int radius = inputBitmap.length/2;
-        for (int i = 0; i<inputBitmap.length; i++){
-            for (int j = 0; j<inputBitmap[0].length; j++) {
+        int radius = inputBitmap.length / 2;
+        for (int i = 0; i < inputBitmap.length; i++) {
+            for (int j = 0; j < inputBitmap[0].length; j++) {
                 if ((i * i - radius) + (j * j - radius) <= radius * radius) {
                     sumMSE += countSquareSubstraction(inputBitmap[i][j][0], inputBitmap[i][j][0] > 127 ? 0 : 255);
                 }
@@ -160,10 +160,6 @@ public class SinogramCreator extends Observable implements Runnable {
             }
             new Thread(new Normalizer(makeCopyBitmap(tmp), fileManager, i)).start();
         }
-        for (double d : mseArray) {
-            System.out.print(d + " ");
-        }
-        System.out.println();
         normalize(outputBitmap);
     }
 
@@ -250,7 +246,7 @@ public class SinogramCreator extends Observable implements Runnable {
         }
     }
 
-    private void normalize(int[][] bitmap, int iteration) {
+    private void normalizeAndCountMSE(int[][] bitmap, int iteration) {
         int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
         for (int[] row : bitmap) {
             for (int cell : row) {
@@ -274,7 +270,7 @@ public class SinogramCreator extends Observable implements Runnable {
                 }
             }
         }
-        mseArray[iteration+1] = Math.sqrt(sumMSE);
+        mseArray[iteration + 1] = Math.sqrt(sumMSE);
     }
 
     private double countSquareSubstraction(int pixelInputColor, int pixelColor) {
@@ -335,7 +331,7 @@ public class SinogramCreator extends Observable implements Runnable {
 
         @Override
         public void run() {
-            normalize(bitmap, numberOfIteration);
+            normalizeAndCountMSE(bitmap, numberOfIteration);
             fileManager.saveIndirectImage(bitmap, name, numberOfIteration);
         }
     }

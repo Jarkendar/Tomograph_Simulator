@@ -2,7 +2,6 @@ package sample;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -108,24 +107,23 @@ public class Controller implements Observer {
     }
 
     private void createMSELineChart(SinogramCreator sinogramCreator) {
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                XYChart.Series series = new XYChart.Series();
-                series.setName("MSE");
-                double[] mseArray = sinogramCreator.getMseArray();
-                for (int i = 1; i < mseArray.length; i++) {
-                    XYChart.Data data = new XYChart.Data<Number, Number>(i, (mseArray[i] / mseArray[0]) * 100);
-                    series.getData().add(data);
-                }
-                lineChart.getXAxis().setLabel("Steps");
-                lineChart.getYAxis().setLabel("Error [%]");
-
-                lineChartXAxis.setAutoRanging(true);
-                lineChartYAxis.setAutoRanging(true);
-
-                lineChart.getData().add(series);
+        Platform.runLater(() -> {
+            XYChart.Series<Integer,Double> series = new XYChart.Series<>();
+            series.setName("MSE");
+            double[] mseArray = sinogramCreator.getMseArray();
+            for (int i = 1; i < mseArray.length; i++) {
+                XYChart.Data<Integer,Double> data = new XYChart.Data<>(i, (mseArray[i] / mseArray[0]) * 100);
+                series.getData().add(data);
             }
+            lineChart.getXAxis().setLabel("Steps");
+            lineChart.getYAxis().setLabel("Error [%]");
+
+            lineChartXAxis.setAutoRanging(true);
+            lineChartYAxis.setAutoRanging(true);
+
+            lineChart.setCreateSymbols(false);
+
+            lineChart.getData().add(series);
         });
     }
 
@@ -222,6 +220,7 @@ public class Controller implements Observer {
     }
 
     public void clickStartButton(ActionEvent actionEvent) {
+        lineChart.getData().clear();
         SinogramCreator sinogramCreator = new SinogramCreator(imageManager.getBitmap(), Integer.parseInt(detectorNumberTextField.getText()),
                 Integer.parseInt(measureNumberTextField.getText()), Integer.parseInt(degreesRangeTextField.getText()),
                 file.getName(), filteringCheckBox.isSelected());
