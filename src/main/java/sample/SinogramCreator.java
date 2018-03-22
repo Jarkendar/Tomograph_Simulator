@@ -25,6 +25,7 @@ public class SinogramCreator extends Observable implements Runnable {
     private String status = STATUS_START;
     private String name;
     private boolean isFiltering;
+    private double[] mseArray;
 
     public SinogramCreator(int[][][] inputBitmap, int detectorNumber, int scansNumber, int angleRange, String name, boolean isFiltering) {
         this.inputBitmap = inputBitmap;
@@ -35,6 +36,22 @@ public class SinogramCreator extends Observable implements Runnable {
         this.isFiltering = isFiltering;
         sinogramBitmap = new int[detectorNumber][scansNumber];
         outputBitmap = new int[inputBitmap.length][inputBitmap[0].length];
+        mseArray = new double[1+scansNumber];
+        countMaxMSE();
+    }
+
+
+    private void countMaxMSE(){
+        long sumMSE = 0;
+        int radius = inputBitmap.length/2;
+        for (int i = 0; i<inputBitmap.length; i++){
+            for (int j = 0; j<inputBitmap[0].length; j++) {
+                if ((i * i - radius) + (j * j - radius) <= radius * radius) {
+                    sumMSE += countSquareSubstraction(inputBitmap[i][j][0], inputBitmap[i][j][0] > 127 ? 0 : 255);
+                }
+            }
+        }
+        mseArray[0] = Math.sqrt(sumMSE);
     }
 
     @Override
@@ -139,6 +156,10 @@ public class SinogramCreator extends Observable implements Runnable {
             }
             new Thread(new Normalizer(makeCopyBitmap(tmp), fileManager, i)).start();
         }
+        for (double d : mseArray) {
+            System.out.print(d + " ");
+        }
+        System.out.println();
         normalize(outputBitmap);
     }
 
@@ -169,7 +190,7 @@ public class SinogramCreator extends Observable implements Runnable {
         if (dx >= dy) {//a <= 45 degrees
             while (true) {
                 if (isInImage(actualX, actualY, bitmap)) {
-                    bitmap[actualX][actualY] = color > bitmap[actualX][actualY] ? color : bitmap[actualX][actualY];
+                    bitmap[actualX][actualY] = color;
                 }
                 if (actualX == positions[currentDetector][0]) {
                     break;
@@ -184,7 +205,7 @@ public class SinogramCreator extends Observable implements Runnable {
         } else {//a > 45 degrees
             while (true) {
                 if (isInImage(actualX, actualY, bitmap)) {
-                    bitmap[actualX][actualY] = color > bitmap[actualX][actualY] ? color : bitmap[actualX][actualY];
+                    bitmap[actualX][actualY] = color;
                 }
                 if (actualY == positions[currentDetector][1]) {
                     break;
@@ -223,6 +244,37 @@ public class SinogramCreator extends Observable implements Runnable {
                 bitmap[i][j] = value < 0 ? 0 : value;
             }
         }
+    }
+
+    private void normalize(int[][] bitmap, int iteration) {
+        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+        for (int[] row : bitmap) {
+            for (int cell : row) {
+                if (min > cell) {
+                    min = cell;
+                }
+                if (max < cell) {
+                    max = cell;
+                }
+            }
+        }
+        max = max - min;
+        int radius = bitmap.length / 2;
+        long sumMSE = 0;
+        for (int i = 0; i < bitmap.length; i++) {
+            for (int j = 0; j < bitmap[0].length; j++) {
+                int value = (int) (((double) (bitmap[i][j] - min) / (double) max) * (255.0));
+                bitmap[i][j] = value < 0 ? 0 : value;
+                if ((i * i - radius) + (j * j - radius) <= radius * radius) {
+                    sumMSE += countSquareSubstraction(inputBitmap[i][j][0], bitmap[i][j]);
+                }
+            }
+        }
+        mseArray[iteration+1] = Math.sqrt(sumMSE);
+    }
+
+    private double countSquareSubstraction(int pixelInputColor, int pixelColor) {
+        return Math.pow(pixelColor - pixelInputColor, 2);
     }
 
     private void filterRamLakSinogram() {
@@ -279,7 +331,7 @@ public class SinogramCreator extends Observable implements Runnable {
 
         @Override
         public void run() {
-            normalize(bitmap);
+            normalize(bitmap, numberOfIteration);
             fileManager.saveIndirectImage(bitmap, name, numberOfIteration);
         }
     }

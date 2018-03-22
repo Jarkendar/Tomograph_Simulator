@@ -1,6 +1,7 @@
 package sample;
 
 import javafx.event.ActionEvent;
+import javafx.scene.chart.LineChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Slider;
@@ -23,7 +24,9 @@ public class Controller implements Observer {
     public TextField measureNumberTextField;
     public Slider stepSlider;
     public CheckBox filteringCheckBox;
+    public CheckBox mseCheckBox;
     public Button transformButton;
+    public LineChart lineChart;
 
     private File file = null;
     private ImageManager imageManager;
@@ -81,6 +84,21 @@ public class Controller implements Observer {
             stepImage.setImage(fileManager.readTmpFile(file.getName(), position));
         });
         transformButton.setDisable(!canPressStartButton());
+        mseCheckBox.selectedProperty().addListener((observable, oldValue, newValue) ->{
+            if (mseCheckBox.isSelected()){
+                inputImage.setVisible(false);
+                sinogramImage.setVisible(false);
+                outputImage.setVisible(false);
+                stepImage.setVisible(false);
+                lineChart.setVisible(true);
+            }else {
+                inputImage.setVisible(true);
+                sinogramImage.setVisible(true);
+                outputImage.setVisible(true);
+                stepImage.setVisible(true);
+                lineChart.setVisible(false);
+            }
+        });
     }
 
     private boolean canCastToInteger(String text) {
@@ -185,6 +203,7 @@ public class Controller implements Observer {
     }
 
     private void reverseDisableFields() {
+        chooseFileButton.setDisable(!chooseFileButton.isDisable());
         filteringCheckBox.setDisable(!filteringCheckBox.isDisable());
         transformButton.setDisable(!transformButton.isDisable());
         measureNumberTextField.setDisable(!measureNumberTextField.isDisable());
