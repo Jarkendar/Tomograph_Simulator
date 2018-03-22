@@ -54,6 +54,10 @@ public class SinogramCreator extends Observable implements Runnable {
         mseArray[0] = Math.sqrt(sumMSE);
     }
 
+    public double[] getMseArray() {
+        return mseArray;
+    }
+
     @Override
     public void run() {
         Thread[] rowCounters = new Thread[scansNumber];

@@ -37,10 +37,10 @@
         </ImageView>
       <LineChart fx:id="lineChart" layoutX="14.0" layoutY="14.0" prefHeight="578.0" prefWidth="578.0" visible="false">
         <xAxis>
-          <CategoryAxis side="BOTTOM" />
+          <NumberAxis side="BOTTOM" fx:id="lineChartXAxis" />
         </xAxis>
         <yAxis>
-          <NumberAxis side="LEFT" />
+          <NumberAxis side="LEFT" fx:id="lineChartYAxis"/>
         </yAxis>
       </LineChart>
         <Button fx:id="chooseFileButton" layoutX="614.0" layoutY="14.0" mnemonicParsing="false" onAction="#clickChooseFile" prefHeight="26.0" prefWidth="278.0" text="Choose file" />

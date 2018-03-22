@@ -1,7 +1,11 @@
 package sample;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Slider;
@@ -26,7 +30,9 @@ public class Controller implements Observer {
     public CheckBox filteringCheckBox;
     public CheckBox mseCheckBox;
     public Button transformButton;
-    public LineChart lineChart;
+    public LineChart<Integer, Double> lineChart;
+    public NumberAxis lineChartXAxis;
+    public NumberAxis lineChartYAxis;
 
     private File file = null;
     private ImageManager imageManager;
@@ -84,14 +90,14 @@ public class Controller implements Observer {
             stepImage.setImage(fileManager.readTmpFile(file.getName(), position));
         });
         transformButton.setDisable(!canPressStartButton());
-        mseCheckBox.selectedProperty().addListener((observable, oldValue, newValue) ->{
-            if (mseCheckBox.isSelected()){
+        mseCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            if (mseCheckBox.isSelected()) {
                 inputImage.setVisible(false);
                 sinogramImage.setVisible(false);
                 outputImage.setVisible(false);
                 stepImage.setVisible(false);
                 lineChart.setVisible(true);
-            }else {
+            } else {
                 inputImage.setVisible(true);
                 sinogramImage.setVisible(true);
                 outputImage.setVisible(true);
@@ -100,6 +106,29 @@ public class Controller implements Observer {
             }
         });
     }
+
+    private void createMSELineChart(SinogramCreator sinogramCreator) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                XYChart.Series series = new XYChart.Series();
+                series.setName("MSE");
+                double[] mseArray = sinogramCreator.getMseArray();
+                for (int i = 1; i < mseArray.length; i++) {
+                    XYChart.Data data = new XYChart.Data<Number, Number>(i, (mseArray[i] / mseArray[0]) * 100);
+                    series.getData().add(data);
+                }
+                lineChart.getXAxis().setLabel("Steps");
+                lineChart.getYAxis().setLabel("Error [%]");
+
+                lineChartXAxis.setAutoRanging(true);
+                lineChartYAxis.setAutoRanging(true);
+
+                lineChart.getData().add(series);
+            }
+        });
+    }
+
 
     private boolean canCastToInteger(String text) {
         return text.matches("[0-9]+");
@@ -170,6 +199,7 @@ public class Controller implements Observer {
                     setMaxSliderStep(Integer.parseInt(measureNumberTextField.getText()));
                     stepSlider.setDisable(false);
                     stepImage.setImage(fileManager.readTmpFile(file.getName(), (int) stepSlider.getValue()));
+                    createMSELineChart((SinogramCreator) observable);
                     break;
                 }
             }
@@ -184,7 +214,7 @@ public class Controller implements Observer {
         outputImage.setImage(image);
         reverseDisableFields();
         stop = System.currentTimeMillis();
-        System.out.println("Time = "+(stop-start)+"ms");
+        System.out.println("Time = " + (stop - start) + "ms");
     }
 
     private void setSinogramImage(Image image) {
