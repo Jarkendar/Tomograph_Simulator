@@ -110,7 +110,7 @@ public class Controller implements Observer {
         Platform.runLater(() -> {
             XYChart.Series<Integer,Double> series = new XYChart.Series<>();
             series.setName("MSE");
-            double[] mseArray = sinogramCreator.getMseArray();
+            double[] mseArray = sinogramCreator.getRmseArray();
             for (int i = 1; i < mseArray.length; i++) {
                 XYChart.Data<Integer,Double> data = new XYChart.Data<>(i, (mseArray[i] / mseArray[0]) * 100);
                 series.getData().add(data);

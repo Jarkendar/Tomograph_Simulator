@@ -25,7 +25,7 @@ public class SinogramCreator extends Observable implements Runnable {
     private String status = STATUS_START;
     private String name;
     private boolean isFiltering;
-    private double[] mseArray;
+    private double[] rmseArray;
 
     public SinogramCreator(int[][][] inputBitmap, int detectorNumber, int scansNumber, int angleRange, String name, boolean isFiltering) {
         this.inputBitmap = inputBitmap;
@@ -36,26 +36,26 @@ public class SinogramCreator extends Observable implements Runnable {
         this.isFiltering = isFiltering;
         sinogramBitmap = new int[detectorNumber][scansNumber];
         outputBitmap = new int[inputBitmap.length][inputBitmap[0].length];
-        mseArray = new double[1 + scansNumber];
-        countMaxMSE();
+        rmseArray = new double[1 + scansNumber];
+        countMaxRMSE();
     }
 
 
-    private void countMaxMSE() {
-        long sumMSE = 0;
+    private void countMaxRMSE() {
+        long sumRMSE = 0;
         int radius = inputBitmap.length / 2;
         for (int i = 0; i < inputBitmap.length; i++) {
             for (int j = 0; j < inputBitmap[0].length; j++) {
-                if ((i * i - radius) + (j * j - radius) <= radius * radius) {
-                    sumMSE += countSquareSubstraction(inputBitmap[i][j][0], inputBitmap[i][j][0] > 127 ? 0 : 255);
+                if (Math.pow((i - radius),2) + Math.pow((j - radius),2) <= radius * radius) {
+                    sumRMSE += countSquareSubstraction(inputBitmap[i][j][0], inputBitmap[i][j][0] > 127 ? 0 : 255);
                 }
             }
         }
-        mseArray[0] = Math.sqrt(sumMSE);
+        rmseArray[0] = Math.sqrt(sumRMSE/(inputBitmap.length*inputBitmap[0].length));
     }
 
-    public double[] getMseArray() {
-        return mseArray;
+    public double[] getRmseArray() {
+        return rmseArray;
     }
 
     @Override
@@ -168,8 +168,8 @@ public class SinogramCreator extends Observable implements Runnable {
         for (int i = 0; i < copyBitmap.length; i++) {
             for (int j = 0; j < copyBitmap[i].length; j++) {
                 outputBitmap[i][j] += bitmap[i][j];
+                copyBitmap[i][j] = outputBitmap[i][j];
             }
-            copyBitmap[i] = outputBitmap[i].clone();
         }
         return copyBitmap;
     }
@@ -246,7 +246,7 @@ public class SinogramCreator extends Observable implements Runnable {
         }
     }
 
-    private void normalizeAndCountMSE(int[][] bitmap, int iteration) {
+    private void normalizeAndCountRMSE(int[][] bitmap, int iteration) {
         int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
         for (int[] row : bitmap) {
             for (int cell : row) {
@@ -260,17 +260,17 @@ public class SinogramCreator extends Observable implements Runnable {
         }
         max = max - min;
         int radius = bitmap.length / 2;
-        long sumMSE = 0;
+        long sumRMSE = 0;
         for (int i = 0; i < bitmap.length; i++) {
             for (int j = 0; j < bitmap[0].length; j++) {
                 int value = (int) (((double) (bitmap[i][j] - min) / (double) max) * (255.0));
                 bitmap[i][j] = value < 0 ? 0 : value;
-                if ((i * i - radius) + (j * j - radius) <= radius * radius) {
-                    sumMSE += countSquareSubstraction(inputBitmap[i][j][0], bitmap[i][j]);
+                if (Math.pow((i - radius),2) + Math.pow((j - radius),2) <= radius * radius) {
+                    sumRMSE += countSquareSubstraction(inputBitmap[i][j][0], bitmap[i][j]);
                 }
             }
         }
-        mseArray[iteration + 1] = Math.sqrt(sumMSE);
+        rmseArray[iteration + 1] = Math.sqrt(sumRMSE/(bitmap.length*bitmap[0].length));
     }
 
     private double countSquareSubstraction(int pixelInputColor, int pixelColor) {
@@ -284,9 +284,9 @@ public class SinogramCreator extends Observable implements Runnable {
 
     private double[] createMaskRamLak() {
         double[] filterMask = new double[sinogramBitmap[0].length / 20];
-        double mul = 255.0;
-        filterMask[0] = 1.0 * mul;
-        double numerator = (-4.0) / (PI * PI) * mul;
+        double multiply = 255.0;
+        filterMask[0] = 1.0 * multiply;
+        double numerator = (-4.0) / (PI * PI) * multiply;
         for (int i = 1; i < filterMask.length; i++) {
             if (i % 2 == 0) {
                 filterMask[i] = 0;
@@ -301,19 +301,19 @@ public class SinogramCreator extends Observable implements Runnable {
         int[][] convolveSinogram = new int[sinogramBitmap.length][sinogramBitmap[0].length];
         for (int i = 0; i < sinogramBitmap.length; i++) {
             for (int j = 0; j < sinogramBitmap[0].length; j++) {
-                convolveSinogram[i][j] = convolveForCell(mask, sinogramBitmap[i], j);
+                convolveSinogram[i][j] = convolveForCell(mask, j, i);
             }
         }
         sinogramBitmap = convolveSinogram;
     }
 
-    private int convolveForCell(double[] mask, int[] row, int cellPosition) {
+    private int convolveForCell(double[] mask, int row, int cellPosition) {
         double value = 0.0;
         int startPosition = cellPosition - (mask.length - 1) <= 0 ? 0 : cellPosition - (mask.length - 1);
-        int stopPosition = cellPosition + (mask.length - 1) > (row.length - 1) ? (row.length - 1) : cellPosition + (mask.length - 1);
-        int iterator = (stopPosition - startPosition) / 2;
+        int stopPosition = cellPosition + (mask.length - 1) > (sinogramBitmap.length - 1) ? (sinogramBitmap.length - 1) : cellPosition + (mask.length - 1);
+        int iterator = cellPosition - (mask.length - 1) >= 0 ? mask.length-1 : cellPosition;
         for (int i = startPosition; i <= stopPosition; i++) {
-            value += row[i] * mask[Math.abs(iterator--)];
+            value += sinogramBitmap[i][row] * mask[Math.abs(iterator--)];
         }
         return (int) value;
     }
@@ -331,7 +331,7 @@ public class SinogramCreator extends Observable implements Runnable {
 
         @Override
         public void run() {
-            normalizeAndCountMSE(bitmap, numberOfIteration);
+            normalizeAndCountRMSE(bitmap, numberOfIteration);
             fileManager.saveIndirectImage(bitmap, name, numberOfIteration);
         }
     }
