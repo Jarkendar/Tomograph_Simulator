@@ -25,9 +25,7 @@ public class Main extends Application {
 
     public static File openFileChooser() {
         fileChooser.setTitle("Choose file:");
-
         File file = fileChooser.showOpenDialog(stage);
-        System.out.println(file);
         return file;
     }
 

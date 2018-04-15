@@ -16,12 +16,12 @@ public class ImageManager {
 
         bitmap = new int[matrixSize][matrixSize][2];
 
-        int startIForImage = (bufferedImage.getWidth()-matrixSize)/2;
-        int startJForImage = (bufferedImage.getHeight()-matrixSize)/2;
+        int startIForImage = (bufferedImage.getWidth() - matrixSize) / 2;
+        int startJForImage = (bufferedImage.getHeight() - matrixSize) / 2;
         for (int i = 0; i < matrixSize; i++) {
             for (int j = 0; j < matrixSize; j++) {
-                Color color = new Color(bufferedImage.getRGB(startIForImage+i, startJForImage+j));
-                int gray = (color.getBlue() + color.getGreen() + color.getRed()) / 3;
+                Color color = new Color(bufferedImage.getRGB(startIForImage + i, startJForImage + j));
+                int gray = (int) (0.11 * color.getBlue()) + (int) (0.59 * color.getGreen()) + (int) (0.30 * color.getRed());
                 bitmap[i][j][0] = gray;
                 bitmap[i][j][1] = color.getAlpha();
             }
@@ -47,31 +47,34 @@ public class ImageManager {
         return bitmap;
     }
 
-    public Image createImageFromArray(int[][][] imageArray){
+    public Image createImageFromArray(int[][] imageArray) {
         BufferedImage image = new BufferedImage(imageArray.length, imageArray[0].length, BufferedImage.TYPE_INT_ARGB);
         for (int i = 0; i < imageArray.length; i++) {
             for (int j = 0; j < imageArray[i].length; j++) {
-                Color color = new Color(imageArray[i][j][0], imageArray[i][j][0], imageArray[i][j][0], imageArray[i][j][1]);
+                Color color = new Color(imageArray[i][j], imageArray[i][j], imageArray[i][j], 255);
                 image.setRGB(i, j, color.getRGB());
             }
         }
         return castBufferedImageToImage(image);
     }
 
-    public Image createImageFromSinogram(int[][] sinogram){
+    public Image createImageFromSinogram(int[][] sinogram) {
         int width = sinogram.length;
         int height = sinogram[0].length;
         int imageSize = width < height ? height : width;
         BufferedImage image = new BufferedImage(imageSize, imageSize, BufferedImage.TYPE_INT_ARGB);
-        for (int i = 0; i < imageSize; i++){
-            for (int j = 0; j < imageSize; j++){
+        for (int i = 0; i < imageSize; i++) {
+            for (int j = 0; j < imageSize; j++) {
                 Color color = Color.BLACK;
-                int xSinogram = (imageSize-width)/2;
-                int ySinogram = (imageSize-height)/2;
-                if (i >= xSinogram && j >= ySinogram && (i-xSinogram)<sinogram.length && (j-ySinogram)<sinogram[0].length ){
-                    color = new Color(sinogram[i-xSinogram][j-ySinogram],sinogram[i-xSinogram][j-ySinogram],sinogram[i-xSinogram][j-ySinogram],255);
+                int xSinogram = (imageSize - width) / 2;
+                int ySinogram = (imageSize - height) / 2;
+                if (i >= xSinogram && j >= ySinogram && (i - xSinogram) < sinogram.length && (j - ySinogram) < sinogram[0].length) {
+                    int colorValue = sinogram[i - xSinogram][j - ySinogram];
+                    if (colorValue < 0) colorValue = 0;
+                    if (colorValue > 255) colorValue = 255;
+                    color = new Color(colorValue, colorValue, colorValue, 255);
                 }
-                image.setRGB(i,j,color.getRGB());
+                image.setRGB(i, j, color.getRGB());
             }
         }
         return castBufferedImageToImage(image);

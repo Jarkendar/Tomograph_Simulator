@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
@@ -12,44 +15,44 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/8.0.161"
-          xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+<GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/8.0.161" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
     <columnConstraints>
-        <ColumnConstraints/>
+        <ColumnConstraints />
     </columnConstraints>
     <rowConstraints>
-        <RowConstraints/>
+        <RowConstraints />
     </rowConstraints>
     <AnchorPane prefHeight="600.0" prefWidth="900.0">
-        <ImageView fx:id="inputImage" fitHeight="278.0" fitWidth="278.0" layoutX="14.0" layoutY="14.0"
-                   pickOnBounds="true" preserveRatio="true">
-            <Image url="@../images/defaultBackGround.png"/>
+        <ImageView fx:id="inputImage" fitHeight="278.0" fitWidth="278.0" layoutX="14.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@../images/defaultBackGround.png" />
         </ImageView>
-        <ImageView fx:id="sinogramImage" fitHeight="278.0" fitWidth="278.0" layoutX="314.0" layoutY="14.0"
-                   pickOnBounds="true" preserveRatio="true">
-            <Image url="@../images/defaultBackGround.png"/>
+        <ImageView fx:id="sinogramImage" fitHeight="278.0" fitWidth="278.0" layoutX="314.0" layoutY="14.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@../images/defaultBackGround.png" />
         </ImageView>
-        <ImageView fx:id="outputImage" fitHeight="278.0" fitWidth="278.0" layoutX="14.0" layoutY="314.0"
-                   pickOnBounds="true" preserveRatio="true">
-            <Image url="@../images/defaultBackGround.png"/>
+        <ImageView fx:id="outputImage" fitHeight="278.0" fitWidth="278.0" layoutX="14.0" layoutY="314.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@../images/defaultBackGround.png" />
         </ImageView>
-        <ImageView fx:id="stepImage" fitHeight="278.0" fitWidth="278.0" layoutX="314.0" layoutY="314.0"
-                   pickOnBounds="true" preserveRatio="true">
-            <Image url="@../images/defaultBackGround.png"/>
+        <ImageView fx:id="stepImage" fitHeight="278.0" fitWidth="278.0" layoutX="314.0" layoutY="314.0" pickOnBounds="true" preserveRatio="true">
+            <Image url="@../images/defaultBackGround.png" />
         </ImageView>
-        <Button fx:id="chooseFileButton" layoutX="614.0" layoutY="14.0" mnemonicParsing="false" prefHeight="26.0"
-                prefWidth="278.0" text="Choose file" onAction="#clickChooseFile"/>
-        <Label layoutX="614.0" layoutY="54.0" text="Detectors number: "/>
-        <TextField fx:id="detectorNumberTextField" layoutX="800.0" layoutY="54.0" prefHeight="26.0" prefWidth="92.0" text="1"/>
-        <Label layoutX="614.0" layoutY="94.0" text="Degrees range: "/>
-        <TextField fx:id="degreesRangeTextField" layoutX="800.0" layoutY="94.0" prefHeight="26.0" prefWidth="92.0" text="1"/>
-        <Label layoutX="614.0" layoutY="134.0" text="Measures number: "/>
-        <TextField fx:id="measureNumberTextField" layoutX="800.0" layoutY="134.0" prefHeight="26.0" prefWidth="92.0" text="1"/>
-        <CheckBox fx:id="filteringCheckBox" layoutX="614.0" layoutY="174.0" prefWidth="286.0" prefHeight="26.0"
-                  mnemonicParsing="false" text="Filtering"/>
-        <Button fx:id="transformButton" layoutX="736.0" layoutY="436.0" prefHeight="150.0" prefWidth="150.0"
-                mnemonicParsing="false" text="START" disable="true" onAction="#clickStartButton"/>
-        <Slider fx:id="stepSlider" layoutX="614.0" layoutY="314.0" max="360" orientation="VERTICAL" prefHeight="278.0"
-                showTickLabels="true" showTickMarks="true"/>
+      <LineChart fx:id="lineChart" layoutX="14.0" layoutY="14.0" prefHeight="578.0" prefWidth="578.0" title="Mean Squared Error" visible="false">
+        <xAxis>
+          <NumberAxis fx:id="lineChartXAxis" side="BOTTOM" />
+        </xAxis>
+        <yAxis>
+          <NumberAxis fx:id="lineChartYAxis" side="LEFT" />
+        </yAxis>
+      </LineChart>
+        <Button fx:id="chooseFileButton" layoutX="614.0" layoutY="14.0" mnemonicParsing="false" onAction="#clickChooseFile" prefHeight="26.0" prefWidth="278.0" text="Choose file" />
+        <Label layoutX="614.0" layoutY="54.0" text="Detectors number: " />
+        <TextField fx:id="detectorNumberTextField" layoutX="800.0" layoutY="54.0" prefHeight="26.0" prefWidth="92.0" text="1" />
+        <Label layoutX="614.0" layoutY="94.0" text="Degrees range: " />
+        <TextField fx:id="degreesRangeTextField" layoutX="800.0" layoutY="94.0" prefHeight="26.0" prefWidth="92.0" text="1" />
+        <Label layoutX="614.0" layoutY="134.0" text="Measures number: " />
+        <TextField fx:id="measureNumberTextField" layoutX="800.0" layoutY="134.0" prefHeight="26.0" prefWidth="92.0" text="1" />
+        <CheckBox fx:id="filteringCheckBox" layoutX="614.0" layoutY="174.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="286.0" text="Filtering" />
+        <CheckBox fx:id="mseCheckBox" layoutX="614.0" layoutY="214.0" mnemonicParsing="false" prefHeight="26.0" prefWidth="286.0" text="Show MSE" />
+        <Button fx:id="transformButton" disable="true" layoutX="736.0" layoutY="436.0" mnemonicParsing="false" onAction="#clickStartButton" prefHeight="150.0" prefWidth="150.0" text="START" />
+        <Slider fx:id="stepSlider" disable="true" layoutX="614.0" layoutY="314.0" max="1" orientation="VERTICAL" prefHeight="278.0" showTickLabels="true" showTickMarks="true" />
     </AnchorPane>
 </GridPane>
