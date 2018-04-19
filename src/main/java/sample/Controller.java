@@ -146,10 +146,6 @@ public class Controller implements Observer {
         if (file != null) {
             String fileExtension = getFileExtension(file);
             switch (fileExtension) {
-                case "DICOM": {
-                    //todo do something
-                    break;
-                }
                 case "png": {
                     readImage(file);
                     break;
